@@ -13,11 +13,13 @@ class UserHomePage extends StatefulWidget {
 
 class _UserHomePageState extends State<UserHomePage> {
   String token = '';
+  int userId = 0;
+  String userName = '';
   List<dynamic> daftarBarang = [];
   bool isLoading = false;
   String searchQuery = '';
 
-  List<dynamic> daftarBarangPinjam = [];
+  List<Map<String, dynamic>> daftarBarangPinjam = [];
 
   @override
   void initState() {
@@ -28,6 +30,8 @@ class _UserHomePageState extends State<UserHomePage> {
   Future<void> _loadTokenAndFetchBarang() async {
     final prefs = await SharedPreferences.getInstance();
     final savedToken = prefs.getString('token') ?? '';
+    userId = prefs.getInt('userId') ?? 0;
+    userName = prefs.getString('userName') ?? '';
 
     setState(() {
       token = savedToken;
@@ -57,13 +61,22 @@ class _UserHomePageState extends State<UserHomePage> {
         final barangTerpilih = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DetailBarangPage(barang: barang),
+            builder:
+                (context) => DetailBarangPage(
+                  barang: barang,
+                  daftarBarangPinjam: daftarBarangPinjam,
+                ),
           ),
         );
         if (barangTerpilih != null) {
-          setState(() {
-            daftarBarangPinjam.add(barangTerpilih);
-          });
+          final exists = daftarBarangPinjam.any(
+            (b) => b['id'] == barangTerpilih['id'],
+          );
+          if (!exists) {
+            setState(() {
+              daftarBarangPinjam.add(barangTerpilih);
+            });
+          }
         }
       },
       child: Card(
@@ -153,8 +166,8 @@ class _UserHomePageState extends State<UserHomePage> {
                       IconButton(
                         icon: const Icon(Icons.add_circle_outline),
                         tooltip: 'Tambahkan',
-                        onPressed: () {
-                          Navigator.push(
+                        onPressed: () async {
+                          final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder:
@@ -163,6 +176,14 @@ class _UserHomePageState extends State<UserHomePage> {
                                   ),
                             ),
                           );
+
+                          if (result != null &&
+                              result is List<Map<String, dynamic>>) {
+                            setState(() {
+                              daftarBarangPinjam =
+                                  List<Map<String, dynamic>>.from(result);
+                            });
+                          }
                         },
                       ),
                       IconButton(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../../models/kategori.dart';
 
 class ApiService {
   static const String baseUrl =
@@ -91,6 +92,91 @@ class ApiService {
     } catch (e) {
       print('Exception fetchBarang: $e');
       return null;
+    }
+  }
+
+  static Future<bool> hapusBarang({
+    required String token,
+    required int id,
+  }) async {
+    try {
+      var url = Uri.parse('$baseUrl/Barang/$id');
+      var response = await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return true;
+      } else {
+        print('Gagal hapus barang: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Exception hapusBarang: $e');
+      return false;
+    }
+  }
+
+  static Future<List<Kategori>> fetchKategori(String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/Category'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((item) => Kategori.fromJson(item)).toList();
+    } else {
+      throw Exception('Gagal memuat kategori');
+    }
+  }
+
+  static Future<bool> editBarang({
+    required String token,
+    required int id,
+    required String nama,
+    required int kategoriId,
+    required int kuantitas,
+    required String deskripsi,
+    File? gambar,
+    required String existingImageUrl,
+  }) async {
+    try {
+      var uri = Uri.parse('$baseUrl/barang/$id');
+      var request =
+          http.MultipartRequest('PUT', uri)
+            ..headers['Authorization'] = 'Bearer $token'
+            ..fields['Name'] = nama
+            ..fields['CategoryId'] = kategoriId.toString()
+            ..fields['Quantity'] = kuantitas.toString()
+            ..fields['Description'] = deskripsi
+            ..fields['ExistingImageUrl'] = existingImageUrl;
+
+      if (gambar != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('ImageFile', gambar.path),
+        );
+      } else {
+        // Kirim dummy file kosong agar field ImageFile tetap ada
+        request.files.add(
+          http.MultipartFile.fromBytes('ImageFile', [], filename: 'empty.jpg'),
+        );
+      }
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        var body = await response.stream.bytesToString();
+        print('Edit failed: ${response.statusCode} $body');
+        return false;
+      }
+    } catch (e) {
+      print('Edit exception: $e');
+      return false;
     }
   }
 }

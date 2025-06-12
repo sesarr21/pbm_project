@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../core/services/api_service.dart';
 
 class DaftarPinjamPage extends StatefulWidget {
   final List<dynamic> daftarBarangPinjam;
@@ -161,7 +162,12 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: const BackButton(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context, barangList);
+          },
+        ),
         title: const Text(
           'Daftar Barang',
           style: TextStyle(color: Colors.black),

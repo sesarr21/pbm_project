@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import '../../../core/services/api_service.dart';
-import '../adminhome_page.dart';
 import '../../../models/kategori.dart';
+import '../../../models/barang.dart';
+import '../adminhome_page.dart';
 
-class AddBarangPage extends StatefulWidget {
-  const AddBarangPage({super.key});
+class EditBarangPage extends StatefulWidget {
+  final Barang barang;
+
+  const EditBarangPage({super.key, required this.barang});
 
   @override
-  State<AddBarangPage> createState() => _AddBarangPageState();
+  State<EditBarangPage> createState() => _EditBarangPageState();
 }
 
-class _AddBarangPageState extends State<AddBarangPage> {
+class _EditBarangPageState extends State<EditBarangPage> {
   File? _imageFile;
   final picker = ImagePicker();
 
-  final TextEditingController namaController = TextEditingController();
-  final TextEditingController kuantitasController = TextEditingController();
-  final TextEditingController deskripsiController = TextEditingController();
+  late TextEditingController namaController;
+  late TextEditingController kuantitasController;
+  late TextEditingController deskripsiController;
 
   List<Kategori> kategoriList = [];
   Kategori? selectedKategori;
@@ -30,20 +31,29 @@ class _AddBarangPageState extends State<AddBarangPage> {
   @override
   void initState() {
     super.initState();
+    namaController = TextEditingController(text: widget.barang.name);
+    kuantitasController = TextEditingController(
+      text: widget.barang.quantity.toString(),
+    );
+    deskripsiController = TextEditingController(
+      text: widget.barang.description,
+    );
     loadTokenAndKategori();
   }
 
   Future<void> loadTokenAndKategori() async {
     final prefs = await SharedPreferences.getInstance();
     final savedToken = prefs.getString('token') ?? '';
-    setState(() {
-      token = savedToken;
-    });
+    setState(() => token = savedToken);
 
     try {
       final kategori = await ApiService.fetchKategori(token);
       setState(() {
         kategoriList = kategori;
+        selectedKategori = kategori.firstWhere(
+          (k) => k.id == widget.barang.categoryId,
+          orElse: () => kategori.first,
+        );
       });
     } catch (e) {
       ScaffoldMessenger.of(
@@ -61,33 +71,34 @@ class _AddBarangPageState extends State<AddBarangPage> {
     }
   }
 
-  void tambahBarang() async {
+  void simpanBarang() async {
     if (namaController.text.isEmpty ||
         selectedKategori == null ||
         kuantitasController.text.isEmpty ||
-        deskripsiController.text.isEmpty ||
-        _imageFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap isi semua data termasuk gambar')),
-      );
+        deskripsiController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Harap isi semua data')));
       return;
     }
 
     final kuantitas = int.tryParse(kuantitasController.text) ?? 0;
 
-    final success = await ApiService.tambahBarang(
+    final success = await ApiService.editBarang(
       token: token,
+      id: widget.barang.id,
       nama: namaController.text,
       kategoriId: selectedKategori!.id,
       kuantitas: kuantitas,
       deskripsi: deskripsiController.text,
       gambar: _imageFile,
+      existingImageUrl: widget.barang.imageUrl,
     );
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Barang berhasil ditambahkan')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Barang berhasil disimpan')));
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const AdminHomePage()),
@@ -95,7 +106,7 @@ class _AddBarangPageState extends State<AddBarangPage> {
     } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Gagal menambahkan barang')));
+      ).showSnackBar(const SnackBar(content: Text('Gagal menyimpan barang')));
     }
   }
 
@@ -108,33 +119,23 @@ class _AddBarangPageState extends State<AddBarangPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Navbar atas
               Row(
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AdminHomePage(),
-                        ),
-                      );
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                   const Text(
-                    'Input Barang',
+                    'Edit Barang',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF333333),
+                      color: Color(0xFF2F80ED),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-
-              // Gambar Barang
               const Text(
                 'Gambar Barang',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -176,14 +177,17 @@ class _AddBarangPageState extends State<AddBarangPage> {
                     color: Colors.grey[100],
                   ),
                   child:
-                      _imageFile == null
-                          ? const Center(child: Text('Pilih gambar'))
-                          : Image.file(_imageFile!, fit: BoxFit.cover),
+                      _imageFile != null
+                          ? Image.file(_imageFile!, fit: BoxFit.cover)
+                          : widget.barang.imageUrl.isNotEmpty
+                          ? Image.network(
+                            widget.barang.imageUrl,
+                            fit: BoxFit.cover,
+                          )
+                          : const Center(child: Text('Pilih gambar')),
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Nama Barang
               const Text(
                 'Nama Barang',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -199,8 +203,6 @@ class _AddBarangPageState extends State<AddBarangPage> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Dropdown Kategori
               const Text(
                 'Kategori',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -216,11 +218,7 @@ class _AddBarangPageState extends State<AddBarangPage> {
                         child: Text(kategori.name),
                       );
                     }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedKategori = value;
-                  });
-                },
+                onChanged: (value) => setState(() => selectedKategori = value),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -228,8 +226,6 @@ class _AddBarangPageState extends State<AddBarangPage> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Kuantitas
               const Text(
                 'Kuantitas',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -246,8 +242,6 @@ class _AddBarangPageState extends State<AddBarangPage> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Deskripsi
               const Text(
                 'Deskripsi',
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -264,21 +258,19 @@ class _AddBarangPageState extends State<AddBarangPage> {
                 ),
               ),
               const SizedBox(height: 32),
-
-              // Tombol Tambah Barang
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: tambahBarang,
+                  onPressed: simpanBarang,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2F80ED),
+                    backgroundColor: const Color(0xFFF2C94C),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: const Text(
-                    'Tambah Barang',
+                    'Simpan Barang',
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),

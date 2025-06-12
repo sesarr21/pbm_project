@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/api_service.dart';
 import 'barang/tambah_page.dart';
+import 'barang/detailbarang_page.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -48,45 +49,59 @@ class _AdminHomePageState extends State<AdminHomePage> {
   }
 
   Widget _buildBarangCard(dynamic barang) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: NetworkImage(barang['imageUrl'] ?? ''),
-                  fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailBarangPage(barang: barang),
+          ),
+        );
+
+        if (result == true) {
+          _fetchBarang();
+        }
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  image: DecorationImage(
+                    image: NetworkImage(barang['imageUrl'] ?? ''),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    barang['name'] ?? '-',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      barang['name'] ?? '-',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text('Quantity: ${barang['quantity'] ?? '-'}'),
-                  const SizedBox(height: 4),
-                  Text('Category: ${barang['categoryName'] ?? '-'}'),
-                ],
+                    const SizedBox(height: 6),
+                    Text('Quantity: ${barang['quantity'] ?? '-'}'),
+                    const SizedBox(height: 4),
+                    Text('Category: ${barang['categoryName'] ?? '-'}'),
+                  ],
+                ),
               ),
-            ),
-            const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
-          ],
+              const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
+            ],
+          ),
         ),
       ),
     );
@@ -101,14 +116,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
             context,
             MaterialPageRoute(builder: (context) => const AddBarangPage()),
           ).then((_) {
-            // Refresh daftar barang setelah kembali dari halaman tambah
-            _fetchBarang();
+            _fetchBarang(); // Refresh data setelah menambahkan
           });
         },
         backgroundColor: const Color(0xFF2F80ED),
         child: const Icon(Icons.add, color: Colors.white),
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -135,15 +148,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.notifications_none),
-                    onPressed: () {
-                      // TODO: Open notifications page
-                    },
+                    onPressed: () {},
                   ),
                 ],
               ),
               const SizedBox(height: 24),
 
-              // Welcome texts
               const Text(
                 'Welcome Admin',
                 style: TextStyle(fontSize: 18, color: Color(0xFF2F80ED)),
@@ -159,7 +169,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
               ),
               const SizedBox(height: 24),
 
-              // Search field
               TextField(
                 decoration: InputDecoration(
                   hintText: 'Cari barang...',
@@ -169,12 +178,11 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   ),
                 ),
                 onChanged: (value) {
-                  // TODO: Implement search/filter logic if needed
+                  // Optional: implement search logic
                 },
               ),
               const SizedBox(height: 24),
 
-              // Statistic cards (bisa diisi sesuai data real)
               GridView.count(
                 crossAxisCount: 2,
                 shrinkWrap: true,
@@ -200,14 +208,13 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   ),
                   _buildStatCard(
                     'assets/images/total_pesan.png',
-                    '98',
+                    '0',
                     'Total Pesan',
                   ),
                 ],
               ),
               const SizedBox(height: 32),
 
-              // Daftar Barang Header
               const Text(
                 'Daftar Barang',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

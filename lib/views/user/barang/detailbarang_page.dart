@@ -2,18 +2,26 @@ import 'package:flutter/material.dart';
 
 class DetailBarangPage extends StatelessWidget {
   final Map<String, dynamic> barang;
+  final List<Map<String, dynamic>> daftarBarangPinjam;
 
-  const DetailBarangPage({super.key, required this.barang});
+  const DetailBarangPage({
+    super.key,
+    required this.barang,
+    required this.daftarBarangPinjam,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final bool sudahDitambahkan = daftarBarangPinjam.any(
+      (item) => item['id'] == barang['id'],
+    );
+
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Barang')),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Gambar full width
             ClipRRect(
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
@@ -36,8 +44,6 @@ class DetailBarangPage extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Konten detail
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -52,7 +58,7 @@ class DetailBarangPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${barang['description'] ?? '-'}',
+                    barang['description'] ?? '-',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF333333),
@@ -65,7 +71,7 @@ class DetailBarangPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${barang['categoryName'] ?? '-'}',
+                    barang['categoryName'] ?? '-',
                     style: const TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 16),
@@ -79,24 +85,28 @@ class DetailBarangPage extends StatelessWidget {
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 32),
-
-                  // Tombol Tambahkan di paling bawah konten
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context, barang);
-                      },
+                      onPressed:
+                          sudahDitambahkan
+                              ? null
+                              : () {
+                                Navigator.pop(context, barang);
+                              },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2F80ED),
+                        backgroundColor:
+                            sudahDitambahkan
+                                ? Colors.grey
+                                : const Color(0xFF2F80ED),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Tambahkan',
-                        style: TextStyle(
+                      child: Text(
+                        sudahDitambahkan ? 'Sudah Ditambahkan' : 'Tambahkan',
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
