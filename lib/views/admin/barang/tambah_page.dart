@@ -19,6 +19,8 @@ class _AddBarangPageState extends State<AddBarangPage> {
   File? _imageFile;
   final picker = ImagePicker();
 
+  final ApiService _apiService = ApiService();
+
   final TextEditingController namaController = TextEditingController();
   final TextEditingController kuantitasController = TextEditingController();
   final TextEditingController deskripsiController = TextEditingController();
@@ -41,7 +43,7 @@ class _AddBarangPageState extends State<AddBarangPage> {
     });
 
     try {
-      final kategori = await ApiService.fetchKategori(token);
+      final kategori = await _apiService.fetchKategori();
       setState(() {
         kategoriList = kategori;
       });
@@ -75,8 +77,7 @@ class _AddBarangPageState extends State<AddBarangPage> {
 
     final kuantitas = int.tryParse(kuantitasController.text) ?? 0;
 
-    final success = await ApiService.tambahBarang(
-      token: token,
+    final success = await _apiService.tambahBarang(
       nama: namaController.text,
       kategoriId: selectedKategori!.id,
       kuantitas: kuantitas,

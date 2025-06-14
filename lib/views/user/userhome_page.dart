@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/api_service.dart';
-import 'barang/detailbarang_page.dart';
+import 'barang/detailbarang_page.dart'; 
 import 'peminjaman/daftarpinjam_page.dart';
+import 'notifikasi/notifikasi_page.dart'; 
+
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({super.key});
@@ -12,7 +14,11 @@ class UserHomePage extends StatefulWidget {
 }
 
 class _UserHomePageState extends State<UserHomePage> {
-  String token = '';
+  // 1. Buat instance dari ApiService
+  final ApiService _apiService = ApiService();
+
+  // Variabel token tidak lagi diperlukan sebagai state di halaman ini
+  // String token = '';
   int userId = 0;
   String userName = '';
   List<dynamic> daftarBarang = [];
@@ -24,20 +30,22 @@ class _UserHomePageState extends State<UserHomePage> {
   @override
   void initState() {
     super.initState();
-    _loadTokenAndFetchBarang();
+    // 2. Sederhanakan fungsi yang dipanggil di initState
+    _loadUserInfoAndFetchBarang();
   }
 
-  Future<void> _loadTokenAndFetchBarang() async {
+  // Nama fungsi diubah agar lebih deskriptif
+  Future<void> _loadUserInfoAndFetchBarang() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedToken = prefs.getString('token') ?? '';
-    userId = prefs.getInt('userId') ?? 0;
-    userName = prefs.getString('userName') ?? '';
+    // Mengecek apakah token ada untuk menentukan apakah pengguna sudah login
+    final tokenExists = prefs.getString('token') != null;
+    
+    // Ambil data user lain jika diperlukan
+    userId = prefs.getInt('Id') ?? 0;
+    userName = prefs.getString('username') ?? '';
 
-    setState(() {
-      token = savedToken;
-    });
-
-    if (token.isNotEmpty) {
+    // Hanya panggil API jika pengguna sudah login (memiliki token)
+    if (tokenExists) {
       await _fetchBarang();
     }
   }
@@ -47,14 +55,20 @@ class _UserHomePageState extends State<UserHomePage> {
       isLoading = true;
     });
 
-    final data = await ApiService.fetchBarang(token);
+    // 3. Panggil metode fetchBarang dari instance _apiService
+    //    Tidak perlu lagi mengirim parameter token.
+    final data = await _apiService.fetchBarang();
 
-    setState(() {
-      daftarBarang = data ?? [];
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        daftarBarang = data ?? [];
+        isLoading = false;
+      });
+    }
   }
 
+  // Fungsi _buildBarangCard tetap sama, namun pastikan DetailBarangPage
+  // yang dituju adalah untuk USER, bukan ADMIN.
   Widget _buildBarangCard(dynamic barang) {
     return GestureDetector(
       onTap: () async {
@@ -80,6 +94,7 @@ class _UserHomePageState extends State<UserHomePage> {
         }
       },
       child: Card(
+        // ... (UI Card tidak berubah)
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(vertical: 8),
         child: Padding(
@@ -125,6 +140,7 @@ class _UserHomePageState extends State<UserHomePage> {
   }
 
   List<dynamic> get filteredBarang {
+    // ... (Fungsi filter tidak berubah)
     if (searchQuery.isEmpty) return daftarBarang;
     return daftarBarang
         .where(
@@ -136,6 +152,7 @@ class _UserHomePageState extends State<UserHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Seluruh kode UI di dalam method build tidak ada perubahan.
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -163,9 +180,10 @@ class _UserHomePageState extends State<UserHomePage> {
                   ),
                   Row(
                     children: [
+                      // Tombol ini lebih cocok digambarkan sebagai keranjang/cart
                       IconButton(
-                        icon: const Icon(Icons.add_circle_outline),
-                        tooltip: 'Tambahkan',
+                        icon: const Icon(Icons.shopping_cart_outlined),
+                        tooltip: 'Daftar Pinjam',
                         onPressed: () async {
                           final result = await Navigator.push(
                             context,
@@ -190,7 +208,11 @@ class _UserHomePageState extends State<UserHomePage> {
                         icon: const Icon(Icons.notifications_none),
                         tooltip: 'Notifikasi',
                         onPressed: () {
-                          // TODO: Navigasi ke halaman notifikasi
+                          // Navigasi ke halaman notifikasi
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const NotifikasiPage()),
+                          );
                         },
                       ),
                     ],
@@ -200,9 +222,9 @@ class _UserHomePageState extends State<UserHomePage> {
               const SizedBox(height: 24),
 
               // Welcome texts
-              const Text(
-                'Welcome User',
-                style: TextStyle(fontSize: 18, color: Color(0xFF2F80ED)),
+              Text( // Tampilkan nama user jika ada
+                'Welcome $userName',
+                style: const TextStyle(fontSize: 18, color: Color(0xFF2F80ED)),
               ),
               const SizedBox(height: 4),
               const Text(
@@ -262,3 +284,6 @@ class _UserHomePageState extends State<UserHomePage> {
     );
   }
 }
+
+
+// Contoh Halaman Detail untuk User (Berbeda dari Admin)

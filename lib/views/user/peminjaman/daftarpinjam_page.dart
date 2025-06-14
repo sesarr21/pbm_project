@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/services/api_service.dart';
+import 'peminjaman_list_page.dart';
+import '../../../models/peminjaman_dto.dart';
 
 class DaftarPinjamPage extends StatefulWidget {
   final List<dynamic> daftarBarangPinjam;
@@ -14,12 +16,16 @@ class DaftarPinjamPage extends StatefulWidget {
 class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
   bool lokasiAktif = false;
   Position? currentPosition;
+  bool _isFetchingLocation = false;
 
   // List lokal yang bisa diubah, salinan dari daftarBarangPinjam
   late List<Map<String, dynamic>> barangList;
 
   // Map untuk track checklist tiap barang, key = index barang di barangList
   Map<int, bool> checkedMap = {};
+
+  bool _isLoading = false; // State untuk loading indicator
+  final ApiService _apiService = ApiService(); 
 
   @override
   void initState() {
@@ -51,56 +57,67 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
 
   Future<void> _aktifkanLokasi(bool val) async {
     setState(() {
-      lokasiAktif = val;
-    });
-
+    lokasiAktif = val;
     if (val) {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Layanan lokasi tidak aktif')),
-        );
-        setState(() {
-          lokasiAktif = false;
-        });
-        return;
+      _isFetchingLocation = true; 
       }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Izin lokasi ditolak')));
+    });
+    
+    if (val) {
+      try {
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Layanan lokasi tidak aktif')),
+          );
           setState(() {
             lokasiAktif = false;
           });
           return;
         }
-      }
 
-      if (permission == LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Izin lokasi ditolak permanen')),
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+          if (permission == LocationPermission.denied) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Izin lokasi ditolak')));
+            setState(() {
+              lokasiAktif = false;
+            });
+            return;
+          }
+        }
+
+        if (permission == LocationPermission.deniedForever) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Izin lokasi ditolak permanen')),
+          );
+          setState(() {
+            lokasiAktif = false;
+          });
+          return;
+        }
+
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
         );
+
         setState(() {
-          lokasiAktif = false;
+          currentPosition = position;
         });
-        return;
-      }
 
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
+        debugPrint(
+          'Lokasi saat ini: ${position.latitude}, ${position.longitude}',
+        );
+      } finally {
+      // APAPUN YANG TERJADI (sukses atau gagal), set fetching ke false
       setState(() {
-        currentPosition = position;
+        _isFetchingLocation = false; // <-- Tandai proses selesai
       });
-
-      debugPrint(
-        'Lokasi saat ini: ${position.latitude}, ${position.longitude}',
-      );
+    }
+      
     } else {
       setState(() {
         currentPosition = null;
@@ -158,6 +175,73 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
     });
   }
 
+  Future<void> _handleAjukanPeminjaman() async {
+    setState(() { _isLoading = true; });
+
+    // 1. Kumpulkan barang yang dipilih menjadi List<BorrowItemDto>
+    final List<BorrowItemDto> selectedItemsDto = [];
+    for (int i = 0; i < barangList.length; i++) {
+      if (checkedMap[i] == true && (barangList[i]['selectedQuantity'] ?? 0) > 0) {
+        selectedItemsDto.add(
+          BorrowItemDto(
+            // Pastikan data barang Anda memiliki 'id'
+            itemId: barangList[i]['id'] as int, 
+            quantity: barangList[i]['selectedQuantity'] as int,
+          ),
+        );
+      }
+    }
+
+    if (selectedItemsDto.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih setidaknya satu barang.')));
+      setState(() { _isLoading = false; });
+      return;
+    }
+    
+    // Validasi jika lokasi wajib diaktifkan
+    if (currentPosition == null && lokasiAktif) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mendapatkan lokasi. Mohon coba lagi.')));
+        setState(() { _isLoading = false; });
+        return;
+    }
+
+    // 2. Buat objek DTO utama
+    final borrowRequestDto = CreateBorrowRequestDto(
+      borrowDate: DateTime.now().toUtc(), // Gunakan waktu saat ini
+      // Beri nilai default jika lokasi tidak aktif
+      location: lokasiAktif ? "Lokasi Pengguna" : "Tidak Diketahui",
+      latitude: lokasiAktif ? currentPosition!.latitude : 0.0,
+      longitude: lokasiAktif ? currentPosition!.longitude : 0.0,
+      items: selectedItemsDto,
+    );
+
+    // 3. Panggil API Service untuk mengirim data
+    final bool success = await _apiService.submitBorrowRequest(borrowRequestDto);
+
+    setState(() { _isLoading = false; });
+
+    // 4. Handle response dari API
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Peminjaman berhasil diajukan!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // Pindah ke halaman daftar peminjaman setelah berhasil
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 1)),
+        (Route<dynamic> route) => false,
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal mengajukan peminjaman. Coba lagi.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -336,9 +420,9 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Handle ajukan peminjaman ke backend
-                },
+                onPressed: (totalBarang > 0 && !_isLoading && !_isFetchingLocation)
+                  ? _handleAjukanPeminjaman
+                  : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2F80ED),
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -346,19 +430,35 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Ajukan Peminjaman',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : _isFetchingLocation 
+                      ? const Text('Mencari Lokasi...', style: TextStyle(color: Colors.white))
+                      : const Text(
+                        'Ajukan Peminjaman',
+                          style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                   ),
                 ),
               ),
             ),
           ],
         ),
-      ),
-    );
+      ),     
+    );   
+  }
+}
+
+// Dummy MainPage untuk navigasi, akan kita buat di langkah 5
+class MainPage extends StatelessWidget {
+  final int initialIndex;
+  const MainPage({super.key, this.initialIndex = 0});
+
+  @override
+  Widget build(BuildContext context) {
+    // Implementasi lengkap ada di langkah 5
+    return PeminjamanListPage(); 
   }
 }

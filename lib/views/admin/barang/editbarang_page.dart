@@ -19,6 +19,7 @@ class EditBarangPage extends StatefulWidget {
 class _EditBarangPageState extends State<EditBarangPage> {
   File? _imageFile;
   final picker = ImagePicker();
+  final ApiService _apiService = ApiService();
 
   late TextEditingController namaController;
   late TextEditingController kuantitasController;
@@ -47,7 +48,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
     setState(() => token = savedToken);
 
     try {
-      final kategori = await ApiService.fetchKategori(token);
+      final kategori = await _apiService.fetchKategori();
       setState(() {
         kategoriList = kategori;
         selectedKategori = kategori.firstWhere(
@@ -84,8 +85,8 @@ class _EditBarangPageState extends State<EditBarangPage> {
 
     final kuantitas = int.tryParse(kuantitasController.text) ?? 0;
 
-    final success = await ApiService.editBarang(
-      token: token,
+    final success = await _apiService.editBarang(
+
       id: widget.barang.id,
       nama: namaController.text,
       kategoriId: selectedKategori!.id,

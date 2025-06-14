@@ -1,4 +1,5 @@
 import 'package:classifly/views/admin/adminhome_page.dart';
+import 'package:classifly/views/admin/peminjaman/admin_peminjaman_page.dart';
 import 'package:classifly/views/profil.dart';
 import 'package:flutter/material.dart';
 import '../../core/widgets/bottomnav_admin.dart';
@@ -15,7 +16,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   final List<Widget> pages = [
     const AdminHomePage(),
-    Center(child: Text('Peminjaman Page')),
+    // Center(child: Text('Peminjaman Page')),
+    const AdminPeminjamanListPage(),
     Center(child: Text('Laporan Page')),
     const ProfilPage(),
   ];

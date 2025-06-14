@@ -1,4 +1,5 @@
 import 'package:classifly/views/profil.dart';
+import 'package:classifly/views/user/peminjaman/peminjaman_list_page.dart';
 import 'package:classifly/views/user/userhome_page.dart';
 import 'package:flutter/material.dart';
 import '../../core/widgets/bottomnav_user.dart';
@@ -15,7 +16,8 @@ class _UserDashboardState extends State<UserDashboard> {
 
   final List<Widget> pages = [
     const UserHomePage(),
-    Center(child: Text('Peminjaman Page')),
+    // Center(child: Text('Peminjaman Page')),
+    const PeminjamanListPage(),
     const ProfilPage(),
   ];
 

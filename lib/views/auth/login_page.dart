@@ -12,6 +12,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final ApiService _apiService = ApiService();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
@@ -21,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
       isLoading = true;
     });
 
-    final result = await ApiService.login(
+    final result = await _apiService.login(
       usernameController.text.trim(),
       passwordController.text,
     );

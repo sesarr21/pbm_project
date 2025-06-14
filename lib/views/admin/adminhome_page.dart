@@ -15,6 +15,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   String token = '';
   List<dynamic> daftarBarang = [];
   bool isLoading = false;
+  final ApiService _apiService = ApiService();
 
   @override
   void initState() {
@@ -40,7 +41,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
       isLoading = true;
     });
 
-    final data = await ApiService.fetchBarang(token);
+    final data = await _apiService.fetchBarang();
 
     setState(() {
       daftarBarang = data ?? [];

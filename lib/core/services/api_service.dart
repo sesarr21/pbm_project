@@ -1,33 +1,54 @@
-import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Import semua model data Anda di sini
+import '../../models/notifikasi.dart';
+import '../../models/peminjaman_dto.dart';
 import '../../models/kategori.dart';
+import '../../models/peminjaman.dart';
 
 class ApiService {
+  final Dio _dio = Dio();
   static const String baseUrl =
       'https://classiflyapi20250531093133-gkdmchbqe6gdanf5.canadacentral-01.azurewebsites.net/api';
 
-  // Fungsi login
-  static Future<Map<String, dynamic>?> login(
-    String username,
-    String password,
-  ) async {
-    final url = Uri.parse('$baseUrl/Auth/login');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': username, 'password': password}),
+  ApiService() {
+    // Interceptor ini akan secara otomatis menambahkan 'Authorization' header
+    // ke SEMUA request yang dibuat menggunakan instance _dio
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final prefs = await SharedPreferences.getInstance();
+          final token = prefs.getString('token');
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          return handler.next(options);
+        },
+      ),
     );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
+  }
+
+  // REFAKTOR: Tidak lagi static, tidak perlu token
+  Future<Map<String, dynamic>?> login(String username, String password) async {
+    try {
+      final response = await _dio.post(
+        '$baseUrl/Auth/login',
+        data: {'username': username, 'password': password},
+      );
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      return null;
+    } on DioException catch (e) {
+      print('Error login: ${e.response?.data}');
       return null;
     }
   }
 
-  // Fungsi tambah barang dengan JSON body (gambar base64)
-  static Future<bool> tambahBarang({
-    required String token,
+  // REFAKTOR: Tidak lagi static, tidak perlu token, menggunakan FormData dari Dio
+  Future<bool> tambahBarang({
     required String nama,
     required int kategoriId,
     required int kuantitas,
@@ -35,106 +56,98 @@ class ApiService {
     required File? gambar,
   }) async {
     try {
-      var uri = Uri.parse('$baseUrl/Barang');
-      var request = http.MultipartRequest('POST', uri);
+      FormData formData = FormData.fromMap({
+        'Name': nama,
+        'CategoryId': kategoriId,
+        'Quantity': kuantitas,
+        'Description': deskripsi,
+        if (gambar != null)
+          'ImageFile': await MultipartFile.fromFile(
+            gambar.path,
+            filename: gambar.path.split('/').last,
+          ),
+      });
 
-      request.headers['Authorization'] = 'Bearer $token';
+      final response = await _dio.post(
+        '$baseUrl/Barang',
+        data: formData,
+      );
 
-      // Isi field text
-      request.fields['Name'] = nama;
-      request.fields['CategoryId'] = kategoriId.toString();
-      request.fields['Quantity'] = kuantitas.toString();
-      request.fields['Description'] = deskripsi;
-
-      // Isi file image
-      if (gambar != null) {
-        var stream = http.ByteStream(gambar.openRead());
-        var length = await gambar.length();
-        var multipartFile = http.MultipartFile(
-          'ImageFile',
-          stream,
-          length,
-          filename: gambar.path.split('/').last,
-        );
-        request.files.add(multipartFile);
-      }
-
-      var response = await request.send();
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
-      } else {
-        // Baca response body error (optional)
-        var respStr = await response.stream.bytesToString();
-        print('Error tambahBarang: ${response.statusCode}');
-        print('Response body: $respStr');
-        return false;
-      }
-    } catch (e) {
-      print('Exception tambahBarang: $e');
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      print('--- DIO ERROR ---');
+      print('Error tambahBarang: ${e.response?.data}');
+      print('URL: ${e.requestOptions.uri}');
+      print('Status Code: ${e.response?.statusCode}');
+      print('Response Data: ${e.response?.data}');
+      print('Error Type: ${e.type}');
+      print('--- END DIO ERROR ---');
       return false;
     }
   }
 
-  static Future<List<dynamic>?> fetchBarang(String token) async {
+  // REFAKTOR: Tidak lagi static, tidak perlu token
+  Future<List<dynamic>?> fetchBarang() async {
     try {
-      var url = Uri.parse('$baseUrl/Barang');
-      var response = await http.get(
-        url,
-        headers: {'Authorization': 'Bearer $token'},
-      );
+      final response = await _dio.get('$baseUrl/Barang');
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        print('Fetch barang gagal: ${response.statusCode}');
-        return null;
+        return response.data;
       }
-    } catch (e) {
-      print('Exception fetchBarang: $e');
+      return null;
+    } on DioException catch (e) {
+      print('--- DIO ERROR ---');
+      print('Error fetchBarang: ${e.response?.data}');
+      print('URL: ${e.requestOptions.uri}');
+      print('Status Code: ${e.response?.statusCode}');
+      print('Response Data: ${e.response?.data}');
+      print('Error Type: ${e.type}');
+      print('--- END DIO ERROR ---');
       return null;
     }
   }
-
-  static Future<bool> hapusBarang({
-    required String token,
-    required int id,
-  }) async {
+  
+  // REFAKTOR: Tidak lagi static, tidak perlu token
+  Future<bool> hapusBarang({required int id}) async {
     try {
-      var url = Uri.parse('$baseUrl/Barang/$id');
-      var response = await http.delete(
-        url,
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        return true;
-      } else {
-        print('Gagal hapus barang: ${response.statusCode}');
-        print('Response body: ${response.body}');
-        return false;
-      }
-    } catch (e) {
-      print('Exception hapusBarang: $e');
+      final response = await _dio.delete('$baseUrl/Barang/$id');
+      return response.statusCode == 200 || response.statusCode == 204;
+    } on DioException catch (e) {
+      print('--- DIO ERROR ---');
+      print('Error hapusBarang: ${e.response?.data}');
+      
+      print('URL: ${e.requestOptions.uri}');
+      print('Status Code: ${e.response?.statusCode}');
+      print('Response Data: ${e.response?.data}');
+      print('Error Type: ${e.type}');
+      print('--- END DIO ERROR ---');
       return false;
     }
   }
 
-  static Future<List<Kategori>> fetchKategori(String token) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/Category'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((item) => Kategori.fromJson(item)).toList();
-    } else {
+  // REFAKTOR: Tidak lagi static, tidak perlu token
+  Future<List<Kategori>> fetchKategori() async {
+    try {
+      final response = await _dio.get('$baseUrl/Category');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((item) => Kategori.fromJson(item)).toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      print('--- DIO ERROR ---');
+      print('Error fetchKategori: ${e.response?.data}');
+      
+      print('URL: ${e.requestOptions.uri}');
+      print('Status Code: ${e.response?.statusCode}');
+      print('Response Data: ${e.response?.data}');
+      print('Error Type: ${e.type}');
+      print('--- END DIO ERROR ---');
       throw Exception('Gagal memuat kategori');
     }
   }
 
-  static Future<bool> editBarang({
-    required String token,
+  // REFAKTOR: Tidak lagi static, tidak perlu token, menggunakan FormData dari Dio
+  Future<bool> editBarang({
     required int id,
     required String nama,
     required int kategoriId,
@@ -144,39 +157,127 @@ class ApiService {
     required String existingImageUrl,
   }) async {
     try {
-      var uri = Uri.parse('$baseUrl/barang/$id');
-      var request =
-          http.MultipartRequest('PUT', uri)
-            ..headers['Authorization'] = 'Bearer $token'
-            ..fields['Name'] = nama
-            ..fields['CategoryId'] = kategoriId.toString()
-            ..fields['Quantity'] = kuantitas.toString()
-            ..fields['Description'] = deskripsi
-            ..fields['ExistingImageUrl'] = existingImageUrl;
+      FormData formData = FormData.fromMap({
+        'Name': nama,
+        'CategoryId': kategoriId,
+        'Quantity': kuantitas,
+        'Description': deskripsi,
+        'ExistingImageUrl': existingImageUrl,
+        if (gambar != null)
+          'ImageFile': await MultipartFile.fromFile(
+            gambar.path,
+            filename: gambar.path.split('/').last,
+          ),
+      });
 
-      if (gambar != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath('ImageFile', gambar.path),
-        );
-      } else {
-        // Kirim dummy file kosong agar field ImageFile tetap ada
-        request.files.add(
-          http.MultipartFile.fromBytes('ImageFile', [], filename: 'empty.jpg'),
-        );
-      }
-
-      var response = await request.send();
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        var body = await response.stream.bytesToString();
-        print('Edit failed: ${response.statusCode} $body');
-        return false;
-      }
-    } catch (e) {
-      print('Edit exception: $e');
+      final response = await _dio.put(
+        '$baseUrl/barang/$id',
+        data: formData,
+      );
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      print('--- DIO ERROR ---');
+      print('Error editBarang: ${e.response?.data}');
+      
+      print('URL: ${e.requestOptions.uri}');
+      print('Status Code: ${e.response?.statusCode}');
+      print('Response Data: ${e.response?.data}');
+      print('Error Type: ${e.type}');
+      print('--- END DIO ERROR ---');
       return false;
     }
   }
+
+  // Fungsi ini sudah benar menggunakan _dio
+  Future<bool> submitBorrowRequest(CreateBorrowRequestDto borrowRequest) async {
+    try {
+      final response = await _dio.post(
+        '$baseUrl/Peminjaman',
+        data: borrowRequest.toJson(),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      print('--- DIO ERROR ---');
+      print('Error saat mengajukan peminjaman.');
+      print('URL: ${e.requestOptions.uri}');
+      print('Status Code: ${e.response?.statusCode}');
+      print('Response Data: ${e.response?.data}');
+      print('Error Type: ${e.type}');
+      print('--- END DIO ERROR ---');
+      return false;
+    }
+  }
+
+  // Fungsi ini sudah benar menggunakan _dio
+  Future<List<Peminjaman>> getPeminjamanList() async {
+    try {
+      // Endpoint Anda sudah benar: /Peminjaman/user
+      final response = await _dio.get('$baseUrl/Peminjaman/user');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+
+        // --- PERBAIKAN DI SINI ---
+        // Gunakan Peminjaman.fromJson, bukan DTO.
+        return data.map((item) => Peminjaman.fromJson(item as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      print('--- DIO ERROR getPeminjamanList ---');
+      print('Error getPeminjamanList: ${e.response?.data}');
+      return [];
+    }
+  }
+
+
+  Future<List<Peminjaman>> getSemuaPeminjaman() async {
+    try {
+
+      final response = await _dio.get('$baseUrl/Peminjaman');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((item) => Peminjaman.fromJson(item as Map<String, dynamic>)).toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      print('Error getSemuaPeminjaman: ${e.response?.data}');
+      return [];
+    }
+  }
+
+  Future<bool> updateStatusPeminjaman({
+    required int peminjamanId,
+    required String status,
+    required String adminMessage,
+  }) async {
+    try {
+      // API biasanya menggunakan method PUT atau PATCH untuk update
+      final response = await _dio.put(
+        '$baseUrl/Peminjaman/$peminjamanId/status', // Contoh endpoint
+        data: {
+          'status': status,
+          'adminMessage': adminMessage,
+        },
+      );
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      print('Error updateStatusPeminjaman: ${e.response?.data}');
+      return false;
+    }
+  }
+
+  Future<List<Notifikasi>> getNotifikasi() async {
+  try {
+    final response = await _dio.get('$baseUrl/Notifikasi');
+    if (response.statusCode == 200) {
+      final List<dynamic> data = response.data;
+      return data.map((item) => Notifikasi.fromJson(item)).toList();
+    }
+    return [];
+  } on DioException catch (e) {
+    print('Error getNotifikasi: ${e.response?.data}');
+    return [];
+  }
+}
 }
