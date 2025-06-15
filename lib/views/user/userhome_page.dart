@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/api_service.dart';
+import '../../models/notifikasi.dart';
 import 'barang/detailbarang_page.dart'; 
 import 'peminjaman/daftarpinjam_page.dart';
 import 'notifikasi/notifikasi_page.dart'; 
@@ -17,8 +18,6 @@ class _UserHomePageState extends State<UserHomePage> {
   // 1. Buat instance dari ApiService
   final ApiService _apiService = ApiService();
 
-  // Variabel token tidak lagi diperlukan sebagai state di halaman ini
-  // String token = '';
   int userId = 0;
   String userName = '';
   List<dynamic> daftarBarang = [];
@@ -26,11 +25,13 @@ class _UserHomePageState extends State<UserHomePage> {
   String searchQuery = '';
 
   List<Map<String, dynamic>> daftarBarangPinjam = [];
+  int _notificationCount = 0; 
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // 2. Sederhanakan fungsi yang dipanggil di initState
+    _loadInitialData();
     _loadUserInfoAndFetchBarang();
   }
 
@@ -50,6 +51,35 @@ class _UserHomePageState extends State<UserHomePage> {
     }
   }
 
+
+  Future<void> _loadInitialData() async {
+    setState(() { _isLoading = true; });
+
+    try {
+      // Gunakan Future.wait untuk menjalankan semua API call secara bersamaan
+      final results = await Future.wait([
+        _apiService.fetchBarang(),      // Ambil daftar barang
+        _apiService.getNotifikasi(),    // Ambil daftar notifikasi
+        // Tambahkan API call lain jika perlu
+      ]);
+
+      if (mounted) {
+        setState(() {
+          daftarBarang = results[0] as List<dynamic>? ?? [];
+          final notifikasiList = results[1] as List<Notifikasi>? ?? [];
+          _notificationCount = notifikasiList.length; 
+        });
+      }
+    } catch (e) {
+      print("Error loading initial data: $e");
+      // Handle error
+    } finally {
+      if(mounted) {
+        setState(() { _isLoading = false; });
+      }
+    }
+  }
+
   Future<void> _fetchBarang() async {
     setState(() {
       isLoading = true;
@@ -65,6 +95,105 @@ class _UserHomePageState extends State<UserHomePage> {
         isLoading = false;
       });
     }
+  }
+
+  Widget _buildCartIcon(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.shopping_cart_outlined),
+          tooltip: 'Daftar Pinjam',
+          onPressed: () async {
+            final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DaftarPinjamPage(
+                daftarBarangPinjam: daftarBarangPinjam,
+                ),
+              ),
+            );
+            if (result != null &&
+              result is List<Map<String, dynamic>>) {
+              setState(() {
+              daftarBarangPinjam =
+              List<Map<String, dynamic>>.from(result);
+              });
+            }
+          },
+        ),
+        // Tampilkan badge hanya jika ada barang di keranjang
+        if (daftarBarangPinjam.isNotEmpty)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Text(
+                '${daftarBarangPinjam.length}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // Widget helper untuk ikon notifikasi
+  Widget _buildNotificationIcon(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        IconButton(
+          icon: const Icon(Icons.notifications_none),
+          tooltip: 'Notifikasi',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NotifikasiPage()),
+            ).then((_) {
+              // Refresh jumlah notifikasi setelah kembali dari halaman notifikasi
+              _loadInitialData();
+            });
+          },
+        ),
+        // Tampilkan badge hanya jika ada notifikasi
+        if (_notificationCount > 0)
+          Positioned(
+            right: 6,
+            top: 6,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Text(
+                '$_notificationCount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   // Fungsi _buildBarangCard tetap sama, namun pastikan DetailBarangPage
@@ -181,40 +310,8 @@ class _UserHomePageState extends State<UserHomePage> {
                   Row(
                     children: [
                       // Tombol ini lebih cocok digambarkan sebagai keranjang/cart
-                      IconButton(
-                        icon: const Icon(Icons.shopping_cart_outlined),
-                        tooltip: 'Daftar Pinjam',
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => DaftarPinjamPage(
-                                    daftarBarangPinjam: daftarBarangPinjam,
-                                  ),
-                            ),
-                          );
-
-                          if (result != null &&
-                              result is List<Map<String, dynamic>>) {
-                            setState(() {
-                              daftarBarangPinjam =
-                                  List<Map<String, dynamic>>.from(result);
-                            });
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.notifications_none),
-                        tooltip: 'Notifikasi',
-                        onPressed: () {
-                          // Navigasi ke halaman notifikasi
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const NotifikasiPage()),
-                          );
-                        },
-                      ),
+                      _buildCartIcon(context),
+                      _buildNotificationIcon(context)
                     ],
                   ),
                 ],

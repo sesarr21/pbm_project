@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/services/api_service.dart';
+import '../admin_dashboard.dart';
 import 'editbarang_page.dart';
 import '../../../models/barang.dart';
 
@@ -150,31 +151,37 @@ class _DetailBarangPageState extends State<DetailBarangPage> {
                     ),
                     TextButton(
                       onPressed: () async {
-                        Navigator.pop(context); // tutup dialog dulu
+                        
+                        final navigator = Navigator.of(context);
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-                        final id = widget.barang['id']; // pastikan ini integer
 
-                        // 4. Panggil metode hapusBarang dari instance _apiService
-                        //    TIDAK PERLU mengirim token lagi.
+                        final id = widget.barang['id'];
                         final success = await _apiService.hapusBarang(id: id);
 
-                        // Gunakan 'mounted' check untuk keamanan
+
                         if (!mounted) return;
 
+                        navigator.pop(); 
+
                         if (success) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          scaffoldMessenger.showSnackBar( 
                             const SnackBar(
                               content: Text('Barang berhasil dihapus'),
+                              backgroundColor: Colors.green,
                             ),
                           );
-                          Navigator.pop(
-                            context,
-                            true,
-                          ); // kembali ke halaman sebelumnya + sinyal refresh
+
+                          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (context) => const AdminDashboard()), 
+                              (route) => false,
+                          );
+
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          scaffoldMessenger.showSnackBar(
                             const SnackBar(
                               content: Text('Gagal menghapus barang'),
+                              backgroundColor: Colors.red,
                             ),
                           );
                         }

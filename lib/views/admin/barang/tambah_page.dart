@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import '../../../core/services/api_service.dart';
-import '../adminhome_page.dart';
+import '../admin_dashboard.dart';
 import '../../../models/kategori.dart';
 
 class AddBarangPage extends StatefulWidget {
@@ -91,7 +89,7 @@ class _AddBarangPageState extends State<AddBarangPage> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const AdminHomePage()),
+        MaterialPageRoute(builder: (_) => const AdminDashboard()),
       );
     } else {
       ScaffoldMessenger.of(
@@ -118,7 +116,7 @@ class _AddBarangPageState extends State<AddBarangPage> {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const AdminHomePage(),
+                          builder: (_) => const AdminDashboard(),
                         ),
                       );
                     },

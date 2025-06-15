@@ -7,6 +7,7 @@ import '../../models/notifikasi.dart';
 import '../../models/peminjaman_dto.dart';
 import '../../models/kategori.dart';
 import '../../models/peminjaman.dart';
+import '../../models/laporan_kerusakan.dart';
 
 class ApiService {
   final Dio _dio = Dio();
@@ -268,16 +269,79 @@ class ApiService {
   }
 
   Future<List<Notifikasi>> getNotifikasi() async {
-  try {
-    final response = await _dio.get('$baseUrl/Notifikasi');
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data;
-      return data.map((item) => Notifikasi.fromJson(item)).toList();
+    try {
+      final response = await _dio.get('$baseUrl/Notifikasi');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((item) => Notifikasi.fromJson(item)).toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      print('Error getNotifikasi: ${e.response?.data}');
+      return [];
     }
-    return [];
-  } on DioException catch (e) {
-    print('Error getNotifikasi: ${e.response?.data}');
-    return [];
   }
-}
+
+  // Metode untuk MENGIRIM laporan kerusakan (dari User)
+  Future<bool> submitLaporanKerusakan({
+    required int borrowRequestId,
+    required String description,
+    required File imageFile,
+    required String location,
+    double? latitude,
+    double? longitude,
+  }) async {
+    try {
+      FormData formData = FormData.fromMap({
+        'BorrowRequestId': borrowRequestId,
+        'Description': description,
+        'Location': location,
+        'Latitude': latitude ?? 0.0,
+        'Longitude': longitude ?? 0.0,
+        'ImageFile': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
+      });
+
+      // Asumsi endpoint baru untuk laporan
+      final response = await _dio.post('$baseUrl/Laporan', data: formData);
+      return response.statusCode == 201 || response.statusCode == 200;
+
+    } on DioException catch (e) {
+      print('Error submitLaporanKerusakan: ${e.response?.data}');
+      return false;
+    }
+  }
+// Metode untuk MENGAMBIL SEMUA laporan (untuk Admin)
+  Future<List<LaporanKerusakan>> getSemuaLaporanKerusakan() async {
+    try {
+      final response = await _dio.get('$baseUrl/Laporan');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((item) => LaporanKerusakan.fromJson(item)).toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      print('Error getSemuaLaporanKerusakan: ${e.response?.data}');
+      return [];
+    }
+  }
+  // Metode untuk MENGUBAH STATUS laporan (oleh Admin)
+  Future<bool> updateStatusLaporan(int laporanId, String newStatus , String adminMessage) async {
+    try {
+      final response = await _dio.put(
+        '$baseUrl/Laporan/$laporanId/status',
+        data: {
+        'status': newStatus,
+        'adminMessage': adminMessage, // <-- Tambahkan field ini di body request
+      },
+      );
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      print('Error updateStatusLaporan: ${e.response?.data}');
+      return false;
+    }
+  }
+
 }

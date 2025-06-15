@@ -19,7 +19,9 @@ class _LaporKerusakanPageState extends State<LaporKerusakanPage> {
   bool _isLoading = false;
 
   Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -41,29 +43,36 @@ class _LaporKerusakanPageState extends State<LaporKerusakanPage> {
       return;
     }
 
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
 
-    // Panggil method API yang baru (perlu dibuat di ApiService)
-    // final success = await _apiService.submitLaporanKerusakan(
-    //   peminjamanId: widget.peminjaman.id,
-    //   keterangan: _keteranganController.text,
-    //   gambar: _imageFile!,
-    // );
+    final success = await _apiService.submitLaporanKerusakan(
+      borrowRequestId: widget.peminjaman.id,
+      description: _keteranganController.text,
+      imageFile: _imageFile!,
+      location: widget.peminjaman.location, // Ambil lokasi dari data peminjaman
+    );
 
-    // Simulasi sukses untuk sementara
-    await Future.delayed(const Duration(seconds: 2));
-    const success = true;
 
-    setState(() { _isLoading = false; });
-    
+    setState(() {
+      _isLoading = false;
+    });
+
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Laporan berhasil dikirim!'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('Laporan berhasil dikirim!'),
+          backgroundColor: Colors.green,
+        ),
       );
       Navigator.of(context).pop(); // Kembali ke halaman detail
     } else if (mounted) {
-       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal mengirim laporan.'), backgroundColor: Colors.red),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal mengirim laporan.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -87,20 +96,30 @@ class _LaporKerusakanPageState extends State<LaporKerusakanPage> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.1),
-                border: const Border(left: BorderSide(color: Colors.red, width: 4)),
+                border: const Border(
+                  left: BorderSide(color: Colors.red, width: 4),
+                ),
               ),
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Barang mengalami kerusakan? Segera Laporkan!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    'Barang mengalami kerusakan? Segera Laporkan!',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                   SizedBox(height: 4),
-                  Text('2 Barang Mengalami Kerusakan'), // Ganti dengan data dinamis jika perlu
+                  Text(
+                    '2 Barang Mengalami Kerusakan',
+                  ), // Ganti dengan data dinamis jika perlu
                 ],
               ),
             ),
             const SizedBox(height: 32),
 
-            const Text('Silahkan Kirim Bukti Foto Kerusakan Barang', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            const Text(
+              'Silahkan Kirim Bukti Foto Kerusakan Barang',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
             const SizedBox(height: 12),
             GestureDetector(
               onTap: _pickImage,
@@ -111,33 +130,46 @@ class _LaporKerusakanPageState extends State<LaporKerusakanPage> {
                   border: Border.all(color: Colors.grey),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: _imageFile != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(11),
-                        child: Image.file(_imageFile!, fit: BoxFit.cover),
-                      )
-                    : const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.camera_alt_outlined, size: 48, color: Colors.grey),
-                            SizedBox(height: 8),
-                            Text('Ketuk untuk memilih gambar', style: TextStyle(color: Colors.grey)),
-                          ],
+                child:
+                    _imageFile != null
+                        ? ClipRRect(
+                          borderRadius: BorderRadius.circular(11),
+                          child: Image.file(_imageFile!, fit: BoxFit.cover),
+                        )
+                        : const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.camera_alt_outlined,
+                                size: 48,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Ketuk untuk memilih gambar',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
               ),
             ),
-            
+
             const SizedBox(height: 24),
-            const Text('Keterangan', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            const Text(
+              'Keterangan',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _keteranganController,
               maxLines: 5,
               decoration: InputDecoration(
                 hintText: 'Jelaskan detail kerusakan di sini...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
 
@@ -149,14 +181,21 @@ class _LaporKerusakanPageState extends State<LaporKerusakanPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: _isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Kirim Laporan',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
+                child:
+                    _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                          'Kirim Laporan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
               ),
             ),
           ],

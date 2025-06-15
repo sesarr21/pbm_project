@@ -77,9 +77,15 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
+                    // 1. Ambil status yang dipilih (misal: "approved" atau "rejected")
+                    String statusTerpilih = selectedStatus;
+
+                    // 2. Format string agar huruf pertamanya kapital
+                    String statusUntukApi = statusTerpilih.substring(0, 1).toUpperCase() + statusTerpilih.substring(1);
+
                     final success = await _apiService.updateStatusPeminjaman(
                       peminjamanId: _peminjaman.id,
-                      status: selectedStatus,
+                      status: statusUntukApi,
                       adminMessage: messageController.text,
                     );
                     if (success && mounted) {

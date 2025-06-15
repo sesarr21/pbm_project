@@ -1,4 +1,5 @@
 import 'package:classifly/views/admin/adminhome_page.dart';
+import 'package:classifly/views/admin/laporan/admin_laporan_list_page.dart';
 import 'package:classifly/views/admin/peminjaman/admin_peminjaman_page.dart';
 import 'package:classifly/views/profil.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
     const AdminHomePage(),
     // Center(child: Text('Peminjaman Page')),
     const AdminPeminjamanListPage(),
-    Center(child: Text('Laporan Page')),
+    
+    // Center(child: Text('Laporan Page')),
+    const AdminLaporanListPage(),
     const ProfilPage(),
   ];
 

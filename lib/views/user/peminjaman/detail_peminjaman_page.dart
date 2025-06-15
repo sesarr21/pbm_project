@@ -54,17 +54,18 @@ class DetailPeminjamanPage extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: ElevatedButton.icon(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => LaporKerusakanPage(peminjaman: peminjaman),
-              ),
-            );
-          },
+      bottomNavigationBar: (peminjaman.status == PeminjamanStatus.approved) 
+        ? Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LaporKerusakanPage(peminjaman: peminjaman),
+                  ),
+                );
+              },
           icon: const Icon(Icons.warning_amber_rounded, color: Colors.white),
           label: const Text('Lapor Kerusakan', style: TextStyle(color: Colors.white, fontSize: 16)),
           style: ElevatedButton.styleFrom(
@@ -74,8 +75,9 @@ class DetailPeminjamanPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-        ),
-      ),
+        ),   
+      )
+    : null,
     );
   }
 

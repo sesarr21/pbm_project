@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/api_service.dart';
 import '../../../models/kategori.dart';
 import '../../../models/barang.dart';
-import '../adminhome_page.dart';
+import '../admin_dashboard.dart';
 
 class EditBarangPage extends StatefulWidget {
   final Barang barang;
@@ -102,7 +102,7 @@ class _EditBarangPageState extends State<EditBarangPage> {
       ).showSnackBar(const SnackBar(content: Text('Barang berhasil disimpan')));
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const AdminHomePage()),
+        MaterialPageRoute(builder: (_) => const AdminDashboard()),
       );
     } else {
       ScaffoldMessenger.of(

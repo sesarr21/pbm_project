@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/api_service.dart';
 import 'barang/tambah_page.dart';
 import 'barang/detailbarang_page.dart';
@@ -12,41 +12,82 @@ class AdminHomePage extends StatefulWidget {
 }
 
 class _AdminHomePageState extends State<AdminHomePage> {
-  String token = '';
+
   List<dynamic> daftarBarang = [];
   bool isLoading = false;
   final ApiService _apiService = ApiService();
 
+  int _totalBarang = 0;
+  int _totalPeminjaman = 0;
+  int _totalLaporan = 0;
+  int _totalUser = 0;
+
+  bool _isLoadingStats = true;
+  bool _isLoadingList = true;
+
+
   @override
   void initState() {
     super.initState();
-    _loadTokenAndFetchBarang();
+    _fetchDashboardData();
   }
 
-  Future<void> _loadTokenAndFetchBarang() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedToken = prefs.getString('token') ?? '';
-
+  // Fungsi untuk mengambil semua data dashboard secara paralel
+  Future<void> _fetchDashboardData() async {
     setState(() {
-      token = savedToken;
+      _isLoadingStats = true;
+      _isLoadingList = true;
     });
 
-    if (token.isNotEmpty) {
-      await _fetchBarang();
+    try {
+      // Gunakan Future.wait untuk menjalankan semua API call secara bersamaan
+      final results = await Future.wait([
+        _apiService.fetchBarang(),
+        _apiService.getSemuaPeminjaman(),
+        _apiService.getSemuaLaporanKerusakan(),
+
+      ]);
+
+      // Setelah semua selesai, update state dengan hasilnya
+      if (mounted) {
+        setState(() {
+          // Hasil untuk kartu statistik
+          daftarBarang = results[0] as List<dynamic>? ?? [];
+          _totalBarang = daftarBarang.length;
+          _totalPeminjaman = (results[1] as List).length;
+          _totalLaporan = (results[2] as List).length;
+          // _totalUser = (results[3] as List).length;
+
+          // Matikan semua loading
+          _isLoadingStats = false;
+          _isLoadingList = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching dashboard data: $e");
+      if (mounted) {
+        setState(() {
+          _isLoadingStats = false;
+          _isLoadingList = false;
+        });
+         ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal memuat data dashboard.'), backgroundColor: Colors.red),
+         );
+      }
     }
   }
 
-  Future<void> _fetchBarang() async {
-    setState(() {
-      isLoading = true;
-    });
 
-    final data = await _apiService.fetchBarang();
-
-    setState(() {
-      daftarBarang = data ?? [];
-      isLoading = false;
-    });
+  Future<void> _fetchBarangOnly() async {
+     setState(() => _isLoadingList = true);
+     final data = await _apiService.fetchBarang();
+     if(mounted) {
+       setState(() {
+         daftarBarang = data ?? [];
+         _totalBarang = daftarBarang.length; // Update juga total barang
+         _isLoadingList = false;
+       });
+     }
   }
 
   Widget _buildBarangCard(dynamic barang) {
@@ -60,7 +101,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         );
 
         if (result == true) {
-          _fetchBarang();
+          _fetchBarangOnly();
         }
       },
       child: Card(
@@ -116,8 +157,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddBarangPage()),
-          ).then((_) {
-            _fetchBarang(); // Refresh data setelah menambahkan
+          ).then((isSuccess) {
+            if (isSuccess == true) {
+              _fetchDashboardData(); 
+            } // Refresh data setelah menambahkan
           });
         },
         backgroundColor: const Color(0xFF2F80ED),
@@ -184,36 +227,40 @@ class _AdminHomePageState extends State<AdminHomePage> {
               ),
               const SizedBox(height: 24),
 
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 1.4,
-                children: [
-                  _buildStatCard(
-                    'assets/images/total_barang.png',
-                    daftarBarang.length.toString(),
-                    'Total Barang',
+              // GridView untuk Statistik
+                _isLoadingStats
+                  ? const Center(child: CircularProgressIndicator())
+                  : GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.4,
+                    children: [
+                      _buildStatCard(
+                        'assets/images/total_barang.png',
+                        _totalBarang.toString(),
+                        'Total Barang',
+                      ),
+                      _buildStatCard(
+                        'assets/images/total_peminjaman.png',
+                        _totalPeminjaman.toString(),
+                        'Total Peminjaman',
+                      ),
+                      _buildStatCard(
+                        'assets/images/total_laporan.png',
+                        _totalLaporan.toString(),
+                        'Total Laporan',
+                      ),
+                      // Mengganti "Total Pesan" menjadi "Total User"
+                      _buildStatCard(
+                        'assets/images/total_pesan.png', // Ganti ikon jika perlu
+                        _totalUser.toString(),
+                        'Total User',
+                      ),
+                    ],
                   ),
-                  _buildStatCard(
-                    'assets/images/total_peminjaman.png',
-                    '8',
-                    'Total Peminjaman',
-                  ),
-                  _buildStatCard(
-                    'assets/images/total_laporan.png',
-                    '32',
-                    'Total Laporan',
-                  ),
-                  _buildStatCard(
-                    'assets/images/total_pesan.png',
-                    '0',
-                    'Total Pesan',
-                  ),
-                ],
-              ),
               const SizedBox(height: 32),
 
               const Text(
@@ -222,22 +269,21 @@ class _AdminHomePageState extends State<AdminHomePage> {
               ),
               const SizedBox(height: 12),
 
-              if (isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (daftarBarang.isEmpty)
-                const Text(
-                  'Daftar barang kosong.',
-                  style: TextStyle(color: Colors.grey),
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: daftarBarang.length,
-                  itemBuilder: (context, index) {
-                    return _buildBarangCard(daftarBarang[index]);
-                  },
-                ),
+              _isLoadingList
+                  ? const Center(child: CircularProgressIndicator())
+                  : daftarBarang.isEmpty
+                    ? const Text(
+                        'Daftar barang kosong.',
+                        style: TextStyle(color: Colors.grey),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: daftarBarang.length,
+                        itemBuilder: (context, index) {
+                          return _buildBarangCard(daftarBarang[index]);
+                        },
+                      ),
             ],
           ),
         ),
