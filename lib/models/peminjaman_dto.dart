@@ -32,15 +32,12 @@ class CreateBorrowRequestDto {
     required this.items,
   });
 
-  // Fungsi untuk mengubah objek Dart menjadi Map (yang akan di-encode ke JSON)
   Map<String, dynamic> toJson() {
     return {
-      // "id" tidak perlu dikirim karena akan di-generate oleh backend
       'borrowDate': borrowDate.toIso8601String(),
       'location': location,
       'latitude': latitude,
       'longitude': longitude,
-      // Mengubah list objek BorrowItemDto menjadi list Map
       'items': items.map((item) => item.toJson()).toList(),
     };
   }

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:classifly/core/widgets/bottomnav_user.dart'; // Import widget navbar Anda
+import 'package:classifly/core/widgets/bottomnav_user.dart'; 
 
 class MainScaffold extends StatelessWidget {
   final Widget child;
 
   const MainScaffold({super.key, required this.child});
 
-  // Fungsi untuk menentukan index navbar yang aktif berdasarkan route saat ini
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.toString();
     if (location.startsWith('/home')) {
@@ -22,15 +21,12 @@ class MainScaffold extends StatelessWidget {
     return 0;
   }
 
-  // Fungsi untuk navigasi saat item navbar diklik
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
         context.go('/home');
         break;
       case 1:
-        // Navigasi ke peminjaman list tanpa parameter 'extra'
-        // akan menampilkan tab default (index 0)
         context.go('/peminjaman-list'); 
         break;
       case 2:
@@ -42,8 +38,8 @@ class MainScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: child, // GoRouter akan menempatkan halaman di sini
-      // Gunakan widget BottomNavUser kustom Anda
+      body: child, 
+
       bottomNavigationBar: BottomNavUser(
         currentIndex: _calculateSelectedIndex(context),
         onTap: (index) => _onItemTapped(index, context),

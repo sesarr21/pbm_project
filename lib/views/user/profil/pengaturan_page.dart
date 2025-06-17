@@ -27,8 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
             onChanged: (bool value) {
               setState(() {
                 _isDarkMode = value;
-                // Di aplikasi nyata, Anda akan menyimpan ini di SharedPreferences
-                // dan mengubah tema aplikasi secara keseluruhan.
+
               });
             },
           ),
@@ -41,7 +40,6 @@ class _SettingsPageState extends State<SettingsPage> {
             onChanged: (bool value) {
               setState(() {
                 _areNotificationsOn = value;
-                // Di aplikasi nyata, Anda akan mengelola status langganan notifikasi.
               });
             },
           ),

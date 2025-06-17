@@ -15,8 +15,7 @@ class ApiService {
       'https://classiflyapi20250531093133-gkdmchbqe6gdanf5.canadacentral-01.azurewebsites.net/api';
 
   ApiService() {
-    // Interceptor ini akan secara otomatis menambahkan 'Authorization' header
-    // ke SEMUA request yang dibuat menggunakan instance _dio
+
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -31,7 +30,6 @@ class ApiService {
     );
   }
 
-  // REFAKTOR: Tidak lagi static, tidak perlu token
   Future<Map<String, dynamic>?> login(String username, String password) async {
     try {
       final response = await _dio.post(
@@ -48,7 +46,6 @@ class ApiService {
     }
   }
 
-  // REFAKTOR: Tidak lagi static, tidak perlu token, menggunakan FormData dari Dio
   Future<bool> tambahBarang({
     required String nama,
     required int kategoriId,
@@ -87,7 +84,6 @@ class ApiService {
     }
   }
 
-  // REFAKTOR: Tidak lagi static, tidak perlu token
   Future<List<dynamic>?> fetchBarang() async {
     try {
       final response = await _dio.get('$baseUrl/Barang');
@@ -107,7 +103,6 @@ class ApiService {
     }
   }
   
-  // REFAKTOR: Tidak lagi static, tidak perlu token
   Future<bool> hapusBarang({required int id}) async {
     try {
       final response = await _dio.delete('$baseUrl/Barang/$id');
@@ -125,7 +120,6 @@ class ApiService {
     }
   }
 
-  // REFAKTOR: Tidak lagi static, tidak perlu token
   Future<List<Kategori>> fetchKategori() async {
     try {
       final response = await _dio.get('$baseUrl/Category');
@@ -147,7 +141,6 @@ class ApiService {
     }
   }
 
-  // REFAKTOR: Tidak lagi static, tidak perlu token, menggunakan FormData dari Dio
   Future<bool> editBarang({
     required int id,
     required String nama,
@@ -189,7 +182,6 @@ class ApiService {
     }
   }
 
-  // Fungsi ini sudah benar menggunakan _dio
   Future<bool> submitBorrowRequest(CreateBorrowRequestDto borrowRequest) async {
     try {
       final response = await _dio.post(
@@ -209,17 +201,14 @@ class ApiService {
     }
   }
 
-  // Fungsi ini sudah benar menggunakan _dio
+
   Future<List<Peminjaman>> getPeminjamanList() async {
     try {
-      // Endpoint Anda sudah benar: /Peminjaman/user
       final response = await _dio.get('$baseUrl/Peminjaman/user');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
 
-        // --- PERBAIKAN DI SINI ---
-        // Gunakan Peminjaman.fromJson, bukan DTO.
         return data.map((item) => Peminjaman.fromJson(item as Map<String, dynamic>)).toList();
       }
       return [];
@@ -267,9 +256,9 @@ class ApiService {
     required String adminMessage,
   }) async {
     try {
-      // API biasanya menggunakan method PUT atau PATCH untuk update
+
       final response = await _dio.put(
-        '$baseUrl/Peminjaman/$peminjamanId/status', // Contoh endpoint
+        '$baseUrl/Peminjaman/$peminjamanId/status', 
         data: {
           'status': status,
           'adminMessage': adminMessage,
@@ -298,7 +287,7 @@ class ApiService {
 
   Future<bool> hapusNotifikasi(int notifikasiId) async {
   try {
-    // API biasanya menggunakan method DELETE untuk menghapus
+   
     final response = await _dio.delete('$baseUrl/Notifikasi/$notifikasiId');
     return response.statusCode == 200 || response.statusCode == 204;
   } on DioException catch (e) {
@@ -307,7 +296,6 @@ class ApiService {
   }
 }
 
-  // Metode untuk MENGIRIM laporan kerusakan (dari User)
   Future<bool> submitLaporanKerusakan({
     required int borrowRequestId,
     required String description,
@@ -329,7 +317,7 @@ class ApiService {
         ),
       });
 
-      // Asumsi endpoint baru untuk laporan
+   
       final response = await _dio.post('$baseUrl/Laporan', data: formData);
       return response.statusCode == 201 || response.statusCode == 200;
 
@@ -338,7 +326,7 @@ class ApiService {
       return false;
     }
   }
-// Metode untuk MENGAMBIL SEMUA laporan (untuk Admin)
+
   Future<List<LaporanKerusakan>> getSemuaLaporanKerusakan() async {
     try {
       final response = await _dio.get('$baseUrl/Laporan');
@@ -352,14 +340,14 @@ class ApiService {
       return [];
     }
   }
-  // Metode untuk MENGUBAH STATUS laporan (oleh Admin)
+ 
   Future<bool> updateStatusLaporan(int laporanId, String newStatus , String adminMessage) async {
     try {
       final response = await _dio.put(
         '$baseUrl/Laporan/$laporanId/status',
         data: {
         'status': newStatus,
-        'adminMessage': adminMessage, // <-- Tambahkan field ini di body request
+        'adminMessage': adminMessage, 
       },
       );
       return response.statusCode == 200;

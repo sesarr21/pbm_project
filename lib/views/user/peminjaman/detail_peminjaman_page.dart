@@ -34,20 +34,18 @@ class DetailPeminjamanPage extends StatelessWidget {
                 ),
                 const Divider(height: 32),
                 
-                // --- DATA DINAMIS DIMULAI DI SINI ---
+  
                 _buildDetailRow(Icons.person_outline, 'Nama Peminjam', peminjaman.userName),
                 _buildDetailRow(Icons.location_on_outlined, 'Lokasi', peminjaman.location),
                 _buildDetailRow(Icons.calendar_today_outlined, 'Tanggal Peminjaman', DateFormat('dd MMMM yyyy', 'id_ID').format(peminjaman.borrowDate)),
                 const SizedBox(height: 16),
                 
-                // Daftar item sekarang dinamis
                 _buildDaftarItem(peminjaman.borrowItems), 
                 
                 const Divider(height: 32),
                 _buildStatus(peminjaman),
                 const SizedBox(height: 16),
                 
-                // Pesan admin dinamis, dengan penanganan jika null
                 _buildDetailRow(Icons.message_outlined, 'Pesan Admin', peminjaman.adminMessage ?? 'Tidak ada pesan'),
               ],
             ),
@@ -81,7 +79,6 @@ class DetailPeminjamanPage extends StatelessWidget {
     );
   }
 
-  // Widget _buildDetailRow tidak berubah, karena sudah dirancang untuk data dinamis
   Widget _buildDetailRow(IconData icon, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -105,7 +102,6 @@ class DetailPeminjamanPage extends StatelessWidget {
     );
   }
 
-  // --- WIDGET INI SEKARANG DINAMIS ---
   Widget _buildDaftarItem(List<PeminjamanBarang> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +116,7 @@ class DetailPeminjamanPage extends StatelessWidget {
         const SizedBox(height: 8),
         Padding(
           padding: const EdgeInsets.only(left: 36.0),
-          // Gunakan Column untuk menampilkan setiap item dari list
+
           child: Column(
             children: items.map((item) {
               return Padding(
@@ -140,7 +136,6 @@ class DetailPeminjamanPage extends StatelessWidget {
     );
   }
 
-  // Widget _buildStatus tidak berubah
   Widget _buildStatus(Peminjaman peminjaman) {
     return Row(
       children: [

@@ -13,14 +13,12 @@ class _AddUserScreenState extends State<AddUserScreen> {
   final _formKey = GlobalKey<FormState>();
   final _apiService = ApiService();
 
-  // Controllers untuk setiap input field
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _fullNameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // State untuk dropdown dan loading
-  String _selectedRole = 'User'; // Nilai default
+  String _selectedRole = 'User'; 
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -112,11 +110,10 @@ class _AddUserScreenState extends State<AddUserScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                // Dropdown untuk memilih Role
                 DropdownButtonFormField<String>(
                   value: _selectedRole,
                   decoration: const InputDecoration(labelText: 'Role'),
-                  items: ['User', 'Admin'] // Opsi role
+                  items: ['User', 'Admin'] 
                       .map((role) => DropdownMenuItem(
                             value: role,
                             child: Text(role),
@@ -137,13 +134,6 @@ class _AddUserScreenState extends State<AddUserScreen> {
                     child: Text(_errorMessage!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
                   ),
                 SizedBox(
-                  // height: 50,
-                  // child: ElevatedButton(
-                  //   onPressed: _isLoading ? null : _submitAddUser,
-                  //   child: _isLoading
-                  //       ? const CircularProgressIndicator(color: Colors.white)
-                  //       : const Text('Simpan User', style: TextStyle(fontSize: 18)),
-                  // ),
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(

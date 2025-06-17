@@ -261,9 +261,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         _totalLaporan.toString(),
                         'Total Laporan',
                       ),
-                      // Mengganti "Total Pesan" menjadi "Total User"
+         
                       _buildStatCard(
-                        'assets/images/total_user.png', // Ganti ikon jika perlu
+                        'assets/images/total_user.png', 
                         _totalUser.toString(),
                         'Total User',
                       ),

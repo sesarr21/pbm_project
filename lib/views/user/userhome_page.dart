@@ -35,17 +35,15 @@ class _UserHomePageState extends State<UserHomePage> {
     _loadUserInfoAndFetchBarang();
   }
 
-  // Nama fungsi diubah agar lebih deskriptif
+  
   Future<void> _loadUserInfoAndFetchBarang() async {
     final prefs = await SharedPreferences.getInstance();
-    // Mengecek apakah token ada untuk menentukan apakah pengguna sudah login
+
     final tokenExists = prefs.getString('token') != null;
     
-    // Ambil data user lain jika diperlukan
     userId = prefs.getInt('Id') ?? 0;
     userName = prefs.getString('username') ?? '';
 
-    // Hanya panggil API jika pengguna sudah login (memiliki token)
     if (tokenExists) {
       await _fetchBarang();
     }
@@ -56,11 +54,9 @@ class _UserHomePageState extends State<UserHomePage> {
     setState(() { _isLoading = true; });
 
     try {
-      // Gunakan Future.wait untuk menjalankan semua API call secara bersamaan
       final results = await Future.wait([
-        _apiService.fetchBarang(),      // Ambil daftar barang
-        _apiService.getNotifikasi(),    // Ambil daftar notifikasi
-        // Tambahkan API call lain jika perlu
+        _apiService.fetchBarang(),      
+        _apiService.getNotifikasi(),    
       ]);
 
       if (mounted) {
@@ -85,8 +81,6 @@ class _UserHomePageState extends State<UserHomePage> {
       isLoading = true;
     });
 
-    // 3. Panggil metode fetchBarang dari instance _apiService
-    //    Tidak perlu lagi mengirim parameter token.
     final data = await _apiService.fetchBarang();
 
     if (mounted) {
@@ -121,7 +115,7 @@ class _UserHomePageState extends State<UserHomePage> {
             }
           },
         ),
-        // Tampilkan badge hanya jika ada barang di keranjang
+
         if (daftarBarangPinjam.isNotEmpty)
           Positioned(
             right: 6,
@@ -150,7 +144,6 @@ class _UserHomePageState extends State<UserHomePage> {
     );
   }
 
-  // Widget helper untuk ikon notifikasi
   Widget _buildNotificationIcon(BuildContext context) {
     return Stack(
       children: <Widget>[
@@ -162,12 +155,12 @@ class _UserHomePageState extends State<UserHomePage> {
               context,
               MaterialPageRoute(builder: (context) => const NotifikasiPage()),
             ).then((_) {
-              // Refresh jumlah notifikasi setelah kembali dari halaman notifikasi
+
               _loadInitialData();
             });
           },
         ),
-        // Tampilkan badge hanya jika ada notifikasi
+
         if (_notificationCount > 0)
           Positioned(
             right: 6,
@@ -196,8 +189,6 @@ class _UserHomePageState extends State<UserHomePage> {
     );
   }
 
-  // Fungsi _buildBarangCard tetap sama, namun pastikan DetailBarangPage
-  // yang dituju adalah untuk USER, bukan ADMIN.
   Widget _buildBarangCard(dynamic barang) {
     return GestureDetector(
       onTap: () async {
@@ -223,7 +214,6 @@ class _UserHomePageState extends State<UserHomePage> {
         }
       },
       child: Card(
-        // ... (UI Card tidak berubah)
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(vertical: 8),
         child: Padding(
@@ -269,7 +259,6 @@ class _UserHomePageState extends State<UserHomePage> {
   }
 
   List<dynamic> get filteredBarang {
-    // ... (Fungsi filter tidak berubah)
     if (searchQuery.isEmpty) return daftarBarang;
     return daftarBarang
         .where(
@@ -281,7 +270,6 @@ class _UserHomePageState extends State<UserHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Seluruh kode UI di dalam method build tidak ada perubahan.
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -289,7 +277,6 @@ class _UserHomePageState extends State<UserHomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Navbar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -309,7 +296,6 @@ class _UserHomePageState extends State<UserHomePage> {
                   ),
                   Row(
                     children: [
-                      // Tombol ini lebih cocok digambarkan sebagai keranjang/cart
                       _buildCartIcon(context),
                       _buildNotificationIcon(context)
                     ],
@@ -318,8 +304,8 @@ class _UserHomePageState extends State<UserHomePage> {
               ),
               const SizedBox(height: 24),
 
-              // Welcome texts
-              Text( // Tampilkan nama user jika ada
+      
+              Text( 
                 'Welcome $userName',
                 style: const TextStyle(fontSize: 18, color: Color(0xFF2F80ED)),
               ),
@@ -382,5 +368,3 @@ class _UserHomePageState extends State<UserHomePage> {
   }
 }
 
-
-// Contoh Halaman Detail untuk User (Berbeda dari Admin)

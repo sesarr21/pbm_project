@@ -18,19 +18,18 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
   Position? currentPosition;
   bool _isFetchingLocation = false;
 
-  // List lokal yang bisa diubah, salinan dari daftarBarangPinjam
+  
   late List<Map<String, dynamic>> barangList;
 
-  // Map untuk track checklist tiap barang, key = index barang di barangList
+  
   Map<int, bool> checkedMap = {};
 
-  bool _isLoading = false; // State untuk loading indicator
+  bool _isLoading = false; 
   final ApiService _apiService = ApiService(); 
 
   @override
   void initState() {
     super.initState();
-    // Copy data dari widget ke list lokal supaya bisa diubah
     barangList =
         widget.daftarBarangPinjam
             .map<Map<String, dynamic>>(
@@ -38,13 +37,11 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
             )
             .toList();
 
-    // Inisialisasi semua checkbox false
     for (int i = 0; i < barangList.length; i++) {
       checkedMap[i] = false;
     }
   }
 
-  // Total barang berdasarkan checkbox yang aktif dan quantity yang dipilih
   int get totalBarang {
     int total = 0;
     for (int i = 0; i < barangList.length; i++) {
@@ -112,9 +109,8 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
           'Lokasi saat ini: ${position.latitude}, ${position.longitude}',
         );
       } finally {
-      // APAPUN YANG TERJADI (sukses atau gagal), set fetching ke false
       setState(() {
-        _isFetchingLocation = false; // <-- Tandai proses selesai
+        _isFetchingLocation = false; 
       });
     }
       
@@ -125,7 +121,6 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
     }
   }
 
-  // Fungsi untuk update jumlah barang yang dipilih (min/plus)
   void updateQuantity(int index, bool increment) {
     setState(() {
       int current = barangList[index]['selectedQuantity'] ?? 0;
@@ -134,7 +129,7 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
       if (increment) {
         if (current < maxQty) {
           barangList[index]['selectedQuantity'] = current + 1;
-          // Jika belum diceklis, langsung ceklis kalau quantity > 0
+
           if (checkedMap[index] != true) {
             checkedMap[index] = true;
           }
@@ -143,11 +138,9 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
         if (current > 0) {
           barangList[index]['selectedQuantity'] = current - 1;
           if (barangList[index]['selectedQuantity'] == 0) {
-            // Kalau quantity jadi 0, uncheck dan hapus barang dari list
             checkedMap[index] = false;
             barangList.removeAt(index);
 
-            // Karena hapus item dari list, kita juga harus update key di checkedMap
             Map<int, bool> newChecked = {};
             for (int i = 0; i < barangList.length; i++) {
               newChecked[i] = checkedMap[i >= index ? i + 1 : i] ?? false;
@@ -159,15 +152,14 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
     });
   }
 
-  // Fungsi toggle checklist barang
   void toggleCheck(int index, bool? val) {
     setState(() {
       checkedMap[index] = val ?? false;
-      // Kalau checklist false, set quantity ke 0 juga supaya tidak dihitung
+
       if (!checkedMap[index]!) {
         barangList[index]['selectedQuantity'] = 0;
       } else {
-        // Kalau checklist true tapi quantity 0, set ke 1 minimal
+
         if ((barangList[index]['selectedQuantity'] ?? 0) == 0) {
           barangList[index]['selectedQuantity'] = 1;
         }
@@ -178,13 +170,12 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
   Future<void> _handleAjukanPeminjaman() async {
     setState(() { _isLoading = true; });
 
-    // 1. Kumpulkan barang yang dipilih menjadi List<BorrowItemDto>
     final List<BorrowItemDto> selectedItemsDto = [];
     for (int i = 0; i < barangList.length; i++) {
       if (checkedMap[i] == true && (barangList[i]['selectedQuantity'] ?? 0) > 0) {
         selectedItemsDto.add(
           BorrowItemDto(
-            // Pastikan data barang Anda memiliki 'id'
+ 
             itemId: barangList[i]['id'] as int, 
             quantity: barangList[i]['selectedQuantity'] as int,
           ),
@@ -198,7 +189,6 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
       return;
     }
     
-    // Validasi jika lokasi wajib diaktifkan
     if (currentPosition == null && lokasiAktif) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mendapatkan lokasi. Mohon coba lagi.')));
         setState(() { _isLoading = false; });
@@ -207,20 +197,18 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
 
     // 2. Buat objek DTO utama
     final borrowRequestDto = CreateBorrowRequestDto(
-      borrowDate: DateTime.now().toUtc(), // Gunakan waktu saat ini
-      // Beri nilai default jika lokasi tidak aktif
+      borrowDate: DateTime.now().toUtc(), 
       location: lokasiAktif ? "Sekolah" : "Tidak Diketahui",
       latitude: lokasiAktif ? currentPosition!.latitude : 0.0,
       longitude: lokasiAktif ? currentPosition!.longitude : 0.0,
       items: selectedItemsDto,
     );
 
-    // 3. Panggil API Service untuk mengirim data
+
     final bool success = await _apiService.submitBorrowRequest(borrowRequestDto);
 
     setState(() { _isLoading = false; });
 
-    // 4. Handle response dari API
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -228,7 +216,7 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
           backgroundColor: Colors.green,
         ),
       );
-      // Pindah ke halaman daftar peminjaman setelah berhasil
+
       context.go('/peminjaman-list', extra: 1);
 
     } else if (mounted) {

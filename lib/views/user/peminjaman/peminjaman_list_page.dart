@@ -71,7 +71,7 @@ class _PeminjamanListPageState extends State<PeminjamanListPage>
         ),
         backgroundColor: Colors.grey[50],
         elevation: 0,
-        automaticallyImplyLeading: false, // Menghilangkan tombol back
+        automaticallyImplyLeading: false, 
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -113,7 +113,6 @@ class _PeminjamanListPageState extends State<PeminjamanListPage>
   Widget _buildPeminjamanCard(Peminjaman peminjaman) {
     return GestureDetector(
       onTap: () {
-        // Navigasi ke halaman detail saat card diklik
         Navigator.push(
           context,
           MaterialPageRoute(

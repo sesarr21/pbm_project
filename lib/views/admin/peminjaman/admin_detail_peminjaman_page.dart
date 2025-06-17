@@ -22,15 +22,14 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
     _peminjaman = widget.peminjaman;
   }
   
-  // Fungsi untuk menampilkan dialog update status
   void _showUpdateStatusDialog(BuildContext context) {
     final messageController = TextEditingController(text: _peminjaman.adminMessage);
-    String selectedStatus = _peminjaman.status.name; // Status awal
+    String selectedStatus = _peminjaman.status.name; 
 
     showDialog(
       context: context,
       builder: (context) {
-        return StatefulBuilder( // Gunakan StatefulBuilder agar dialog bisa update state
+        return StatefulBuilder( 
           builder: (context, setDialogState) {
             return AlertDialog(
               title: Text('Peminjaman: #${_peminjaman.id}'),
@@ -77,10 +76,8 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    // 1. Ambil status yang dipilih (misal: "approved" atau "rejected")
                     String statusTerpilih = selectedStatus;
 
-                    // 2. Format string agar huruf pertamanya kapital
                     String statusUntukApi = statusTerpilih.substring(0, 1).toUpperCase() + statusTerpilih.substring(1);
 
                     final success = await _apiService.updateStatusPeminjaman(
@@ -89,11 +86,10 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
                       adminMessage: messageController.text,
                     );
                     if (success && mounted) {
-                      Navigator.pop(context); // Tutup dialog
-                      // Refresh halaman detail untuk menampilkan data baru
+                      Navigator.pop(context); 
                       setState(() {
-                         _peminjaman = Peminjaman.fromJson({ // Buat ulang objek dengan data baru
-                            ..._peminjaman.toJson(), // Anda perlu membuat method toJson() di model
+                         _peminjaman = Peminjaman.fromJson({ 
+                            ..._peminjaman.toJson(), 
                             'status': selectedStatus,
                             'adminMessage': messageController.text
                          });
@@ -133,7 +129,6 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
     );
   }
 
-  // --- WIDGET INI SEKARANG DINAMIS ---
   Widget _buildDaftarItem(List<PeminjamanBarang> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +143,6 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
         const SizedBox(height: 8),
         Padding(
           padding: const EdgeInsets.only(left: 36.0),
-          // Gunakan Column untuk menampilkan setiap item dari list
           child: Column(
             children: items.map((item) {
               return Padding(
@@ -168,7 +162,7 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
     );
   }
 
-  // Widget _buildStatus tidak berubah
+
   Widget _buildStatus(Peminjaman peminjaman) {
     return Row(
       children: [
@@ -188,7 +182,7 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
 
   @override
   Widget build(BuildContext context) {
-    // UI halaman detail ini mirip dengan halaman detail user
+   
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Peminjaman', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),)),
       body: SingleChildScrollView(
@@ -207,20 +201,20 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
                 ),
                 const Divider(height: 32),
                 
-                // --- DATA DINAMIS DIMULAI DI SINI ---
+                
                 _buildDetailRow(Icons.person_outline, 'Nama Peminjam', _peminjaman.userName),
                 _buildDetailRow(Icons.location_on_outlined, 'Lokasi', _peminjaman.location),
                 _buildDetailRow(Icons.calendar_today_outlined, 'Tanggal Peminjaman', DateFormat('dd MMMM yyyy', 'id_ID').format(_peminjaman.borrowDate)),
                 const SizedBox(height: 16),
                 
-                // Daftar item sekarang dinamis
+                
                 _buildDaftarItem(_peminjaman.borrowItems), 
                 
                 const Divider(height: 32),
                 _buildStatus(_peminjaman),
                 const SizedBox(height: 16),
                 
-                // Pesan admin dinamis, dengan penanganan jika null
+              
                 _buildDetailRow(Icons.message_outlined, 'Pesan Admin', _peminjaman.adminMessage ?? 'Tidak ada pesan'),
               ],
             ),

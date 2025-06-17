@@ -36,7 +36,7 @@ class _InformationPageState extends State<InformationPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/logo.png', height: 80), // Ganti dengan path logo Anda
+              Image.asset('assets/images/logo.png', height: 80), 
               const SizedBox(height: 16),
               const Text('Classifly', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),

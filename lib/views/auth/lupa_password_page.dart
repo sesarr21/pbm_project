@@ -34,7 +34,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _errorMessage = null;
     });
 
-    // URL API Anda yang di-deploy
     final url = Uri.parse('https://classiflyapi20250531093133-gkdmchbqe6gdanf5.canadacentral-01.azurewebsites.net/api/Auth/request-otp');
 
     try {
@@ -47,16 +46,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       );
 
       if (response.statusCode == 200) {
-        // Jika sukses, tampilkan notifikasi dan pindah ke halaman OTP
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Kode OTP telah dikirim ke email Anda.'),
               backgroundColor: Colors.green),
         );
-        // Navigasi ke halaman verifikasi OTP, kirim email sebagai parameter
+
         context.push('/verify-otp', extra: _emailController.text);
       } else {
-        // Jika gagal, tampilkan error
+ 
         final responseBody = json.decode(response.body);
         setState(() {
           _errorMessage = responseBody['message'] ?? 'Gagal mengirim OTP.';

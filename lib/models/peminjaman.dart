@@ -49,11 +49,9 @@ class Peminjaman {
   });
 
   factory Peminjaman.fromJson(Map<String, dynamic> json) {
-    // Parsing list 'borrowItems'
     var itemsList = json['borrowItems'] as List;
     List<PeminjamanBarang> parsedItems = itemsList.map((i) => PeminjamanBarang.fromJson(i)).toList();
     
-    // Cek untuk returnDate yang default/null
     DateTime? parsedReturnDate;
     if (json['returnDate'] != null && json['returnDate'] != '0001-01-01T00:00:00') {
       parsedReturnDate = DateTime.parse(json['returnDate'] as String);
@@ -71,7 +69,7 @@ class Peminjaman {
     );
   }
 
-  // Helper function untuk mengubah String status dari API menjadi Enum
+  
   static PeminjamanStatus _parseStatus(String status) {
     switch (status.toLowerCase()) {
       case 'approved':
@@ -84,7 +82,7 @@ class Peminjaman {
     }
   }
 
-  // Helper untuk mendapatkan warna berdasarkan status
+ 
   Color get statusColor {
     switch (status) {
       case PeminjamanStatus.approved:
@@ -96,7 +94,7 @@ class Peminjaman {
     }
   }
 
-  // Helper untuk mendapatkan ikon berdasarkan status
+
   IconData get statusIcon {
     switch (status) {
       case PeminjamanStatus.approved:
@@ -108,7 +106,6 @@ class Peminjaman {
     }
   }
 
-  // Helper untuk mendapatkan teks berdasarkan status
   String get statusText {
     switch (status) {
       case PeminjamanStatus.approved:

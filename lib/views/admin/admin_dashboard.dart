@@ -17,10 +17,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   final List<Widget> pages = [
     const AdminHomePage(),
-    // Center(child: Text('Peminjaman Page')),
     const AdminPeminjamanListPage(),
-    
-    // Center(child: Text('Laporan Page')),
     const AdminLaporanListPage(),
     const ProfilPage(),
   ];

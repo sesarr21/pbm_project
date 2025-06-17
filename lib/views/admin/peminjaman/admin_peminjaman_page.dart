@@ -69,14 +69,14 @@ class _AdminPeminjamanListPageState extends State<AdminPeminjamanListPage> {
         subtitle: Text('Peminjam: ${peminjaman.userName}'),
         trailing: const Icon(Icons.chevron_right),
         onTap: () async {
-          // Navigasi ke halaman detail dan tunggu kemungkinan adanya update
+          
           final result = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (context) => AdminDetailPeminjamanPage(peminjaman: peminjaman),
             ),
           );
-          // Jika halaman detail mengembalikan `true`, berarti ada update, refresh list
+  
           if (result == true) {
             _refreshData();
           }

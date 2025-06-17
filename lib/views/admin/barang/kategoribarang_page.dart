@@ -25,7 +25,6 @@ class _AdminKategoriPageState extends State<AdminKategoriPage> {
     });
   }
 
-  // Dialog untuk Tambah & Edit Kategori
   void _showKategoriDialog({Kategori? kategori}) {
     final isEditing = kategori != null;
     final controller = TextEditingController(text: isEditing ? kategori.name : '');
@@ -60,9 +59,9 @@ class _AdminKategoriPageState extends State<AdminKategoriPage> {
 
                 if (success) {
                   navigator.pop();
-                  _loadKategori(); // Refresh list
+                  _loadKategori(); 
                 } else {
-                  // Tampilkan pesan error jika perlu
+ 
                 }
               },
               child: const Text('Simpan'),

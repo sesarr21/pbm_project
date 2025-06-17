@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 class ContactUsPage extends StatelessWidget {
   const ContactUsPage({super.key});
 
-  // Helper untuk membuka URL
   Future<void> _launchUri(Uri uri) async {
     if (!await launchUrl(uri)) {
       throw Exception('Tidak dapat membuka $uri');

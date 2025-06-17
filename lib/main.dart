@@ -25,30 +25,30 @@ void main() async {
   runApp(const ClassiflyApp());
 }
 
-// 1. Buat instance GoRouter di level tertinggi (global)
+
 final GoRouter _router = GoRouter(
-  initialLocation: '/welcome', // Tentukan halaman awal
+  initialLocation: '/welcome', 
   routes: <RouteBase>[
     GoRoute(
-      path: '/welcome', // Route untuk halaman login
+      path: '/welcome', 
       builder: (BuildContext context, GoRouterState state) {
         return const WelcomePage();
       },
     ),
     GoRoute(
-      path: '/login', // Route untuk halaman login
+      path: '/login', 
       builder: (BuildContext context, GoRouterState state) {
         return const LoginPage();
       },
     ),
     GoRoute(
-      path: '/forgot-password', // Route untuk halaman lupa password
+      path: '/forgot-password', 
       builder: (BuildContext context, GoRouterState state) {
         return const ForgotPasswordScreen();
       },
     ),
     GoRoute(
-      path: '/verify-otp', // Route untuk halaman verifikasi OTP
+      path: '/verify-otp', 
       builder: (BuildContext context, GoRouterState state) {
         final String email = state.extra as String? ?? 'Email tidak ada';
         
@@ -70,25 +70,25 @@ final GoRouter _router = GoRouter(
 
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
-        // 'child' akan diisi oleh GoRouter dengan salah satu halaman di bawah ini
+
         return MainScaffold(child: child);
       },
       routes: <RouteBase>[
-        // Halaman-halaman yang akan ditampilkan di dalam cangkang
+      
         GoRoute(
           path: '/home',
-          builder: (context, state) => const UserHomePage(), // Pengganti pages[0]
+          builder: (context, state) => const UserHomePage(), 
         ),
         GoRoute(
           path: '/peminjaman-list',
           builder: (context, state) {
             final int initialIndex = state.extra as int? ?? 0;
-            return PeminjamanListPage(initialIndex: initialIndex); // Pengganti pages[1]
+            return PeminjamanListPage(initialIndex: initialIndex); 
           },
         ),
         GoRoute(
           path: '/profile',
-          builder: (context, state) => const ProfilPage(), // Pengganti pages[2]
+          builder: (context, state) => const ProfilPage(), 
         ),
       ],
     ),

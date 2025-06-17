@@ -6,7 +6,6 @@ class LaporanKerusakan {
   final String location;
   final DateTime tanggalLapor;
   final String status;
-  // Anda bisa menambahkan detail item jika API mengirimkannya
   
   LaporanKerusakan({
     required this.id,
@@ -23,9 +22,9 @@ class LaporanKerusakan {
       id: json['id'],
       description: json['description'],
       imageUrl: json['imageUrl'],
-      userName: json['userName'], // Asumsi API mengirim nama user
+      userName: json['userName'], 
       location: json['location'],
-      tanggalLapor: DateTime.parse(json['createdAt']), // Asumsi nama field-nya
+      tanggalLapor: DateTime.parse(json['createdAt']), 
       status: json['status'],
     );
   }

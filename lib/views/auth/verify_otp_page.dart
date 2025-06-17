@@ -104,13 +104,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               Text(_errorMessage!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
             const SizedBox(height: 16),
             SizedBox(
-              // height: 50,
-              // child: ElevatedButton(
-              //   onPressed: _isLoading ? null : _verifyOtp,
-              //   child: _isLoading
-              //       ? const CircularProgressIndicator(color: Colors.white)
-              //       : const Text('Verifikasi', style: TextStyle(fontSize: 18)),
-              // ),
+
               width: double.infinity,
                   child:
                     _isLoading

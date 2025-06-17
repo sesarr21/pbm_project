@@ -122,7 +122,7 @@ class _ProfilPageState extends State<ProfilPage> {
                       Icons.logout,
                       'Keluar',
                       onTap: () async {
-                        // 1. Tampilkan dialog konfirmasi
+            
                         final bool? shouldLogout = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -141,18 +141,16 @@ class _ProfilPageState extends State<ProfilPage> {
                           ),
                         );
 
-                        // 2. Lanjutkan hanya jika user menekan "Ya"
+                 
                         if (shouldLogout != true) {
                           return;
                         }
 
-                        // 3. Hapus data sesi
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.clear();
 
                         if (!context.mounted) return;
 
-                        // 4. Gunakan GoRouter untuk navigasi dan reset stack
                         context.go('/login');
                       },
                     ),

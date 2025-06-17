@@ -73,15 +73,15 @@ class _AdminDetailLaporanPageState extends State<AdminDetailLaporanPage> {
                 TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
                 ElevatedButton(
                   onPressed: () async {
-                    // 4. Kirim status DAN pesan ke API
+
                     final success = await _apiService.updateStatusLaporan(
                       _laporan.id, 
                       selectedStatus, 
-                      messageController.text, // <-- Ambil teks dari controller
+                      messageController.text, 
                     );
                     
                     if (success && mounted) {
-                      Navigator.pop(context, true); // Tutup dialog dan kirim sinyal refresh
+                      Navigator.pop(context, true); 
                     } else if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Gagal memperbarui status. Pastikan pesan diisi.'), backgroundColor: Colors.red),
@@ -117,26 +117,23 @@ class _AdminDetailLaporanPageState extends State<AdminDetailLaporanPage> {
                 ),
                 const Divider(height: 32),
                 
-                // Menampilkan Foto Kerusakan
                 _buildSectionTitle('Foto Kerusakan'),
                 const SizedBox(height: 12),
                 _buildImage(_laporan.imageUrl),
                 const SizedBox(height: 16),
 
-                // Menampilkan Keterangan
                 _buildSectionTitle('Keterangan'),
                 const SizedBox(height: 4),
                 Text(_laporan.description, style: const TextStyle(fontSize: 14)),
                 const SizedBox(height: 24),
 
-                // Menampilkan Detail Tambahan
+         
                 _buildDetailRow(Icons.person_outline, 'Nama Pelapor', _laporan.userName),
                 _buildDetailRow(Icons.location_on_outlined, 'Lokasi Kejadian', _laporan.location),
                 _buildDetailRow(Icons.calendar_today_outlined, 'Tanggal Lapor', DateFormat('dd MMMM yyyy, HH:mm', 'id_ID').format(_laporan.tanggalLapor.toLocal())),
                 
                 const Divider(height: 32),
                 
-                // Menampilkan Status Laporan
                 _buildStatus(_laporan.status),
               ],
             ),
@@ -151,8 +148,6 @@ class _AdminDetailLaporanPageState extends State<AdminDetailLaporanPage> {
       ),
     );
   }
-
-  // --- WIDGET HELPER UNTUK UI YANG LEBIH BERSIH ---
 
   Widget _buildSectionTitle(String title) {
     return Text(
