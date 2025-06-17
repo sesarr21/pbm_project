@@ -43,7 +43,7 @@ class _AdminDetailLaporanPageState extends State<AdminDetailLaporanPage> {
                     DropdownButton<String>(
                       value: selectedStatus,
                       isExpanded: true,
-                      items: ['Pending', 'Approved', 'Rejected'].map((status) {
+                      items: ['Pending', 'In Progress', 'Resolved'].map((status) {
                         return DropdownMenuItem(value: status, child: Text(status));
                       }).toList(),
                       onChanged: (value) {
@@ -100,7 +100,7 @@ class _AdminDetailLaporanPageState extends State<AdminDetailLaporanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Laporan')),
+      appBar: AppBar(title: const Text('Detail Laporan', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Card(
@@ -145,8 +145,9 @@ class _AdminDetailLaporanPageState extends State<AdminDetailLaporanPage> {
       ),
        floatingActionButton: FloatingActionButton.extended(
         onPressed: _showUpdateStatusDialog,
-        label: const Text('Ubah Status'),
-        icon: const Icon(Icons.edit),
+        label: const Text('Ubah Status', style: TextStyle(color: Colors.white)),
+        icon: const Icon(Icons.edit, color: Colors.white,),
+        backgroundColor: const Color(0xFF2F80ED)
       ),
     );
   }
@@ -208,11 +209,11 @@ class _AdminDetailLaporanPageState extends State<AdminDetailLaporanPage> {
   Widget _buildStatus(String status) {
     Color statusColor;
     switch (status.toLowerCase()) {
-      case 'approved':
+      case 'resolved':
         statusColor = Colors.green;
         break;
-      case 'rejected':
-        statusColor = Colors.red;
+      case 'in progress':
+        statusColor = Colors.orange;
         break;
       case 'pending':
       default:

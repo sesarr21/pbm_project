@@ -29,7 +29,7 @@ class _AdminLaporanListPageState extends State<AdminLaporanListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Laporan Kerusakan')),
+      appBar: AppBar(title: const Text('Laporan Kerusakan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),)),
       body: FutureBuilder<List<LaporanKerusakan>>(
         future: _laporanFuture,
         builder: (context, snapshot) {
@@ -51,7 +51,7 @@ class _AdminLaporanListPageState extends State<AdminLaporanListPage> {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    leading: const CircleAvatar(child: Icon(Icons.receipt_long_outlined)),
+                    leading: const CircleAvatar(backgroundColor: Color.fromARGB(255, 156, 196, 248), child: Icon(Icons.receipt_long_outlined, color: Color(0xFF2F80ED),)),
                     title: Text('Laporan: #${laporan.id}'),
                     subtitle: Text('Pelapor: ${laporan.userName}'),
                     trailing: const Icon(Icons.chevron_right),

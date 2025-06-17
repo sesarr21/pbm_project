@@ -12,7 +12,7 @@ class DetailPeminjamanPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Peminjaman'),
+        title: const Text('Detail Peminjaman',style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),

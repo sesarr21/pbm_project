@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'auth/login_page.dart';
+
 
 class ProfilPage extends StatefulWidget {
   const ProfilPage({super.key});
@@ -55,7 +56,7 @@ class _ProfilPageState extends State<ProfilPage> {
                 children: [
                   CircleAvatar(
                     radius: 32,
-                    backgroundImage: AssetImage('assets/images/profile.jpg'),
+                    backgroundImage: AssetImage('assets/images/foto_profil.png'),
                   ),
                   SizedBox(width: 16),
                   Column(
@@ -87,7 +88,7 @@ class _ProfilPageState extends State<ProfilPage> {
                   children: [
                     buildListItem(Icons.person, 'Profil'),
                     Divider(height: 1),
-                    buildListItem(Icons.location_on, 'Lokasi'),
+                    buildListItem(Icons.location_on, 'Lokasi', onTap: () => context.push('/profile/location')),
                     Divider(height: 1),
                     buildListItem(Icons.lock, 'Ubah Password'),
                   ],
@@ -105,24 +106,54 @@ class _ProfilPageState extends State<ProfilPage> {
                 ),
                 child: Column(
                   children: [
-                    buildListItem(Icons.settings, 'Pengaturan'),
-                    Divider(height: 1),
-                    buildListItem(Icons.info, 'Informasi'),
-                    Divider(height: 1),
-                    buildListItem(Icons.phone, 'Hubungi Kami'),
-                    Divider(height: 1),
-                    buildListItem(Icons.help_outline, 'FAQs'),
-                    Divider(height: 1),
+                    buildListItem(Icons.settings, 'Pengaturan',
+                        onTap: () => context.push('/settings')),
+                    const Divider(height: 1),
+                    buildListItem(Icons.info, 'Informasi',
+                        onTap: () => context.push('/information')),
+                    const Divider(height: 1),
+                    buildListItem(Icons.phone, 'Hubungi Kami',
+                        onTap: () => context.push('/contact-us')),
+                    const Divider(height: 1),
+                    buildListItem(Icons.help_outline, 'FAQs',
+                        onTap: () => context.push('/faqs')),
+                    const Divider(height: 1),
                     buildListItem(
                       Icons.logout,
                       'Keluar',
                       onTap: () async {
+                        // 1. Tampilkan dialog konfirmasi
+                        final bool? shouldLogout = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Konfirmasi Keluar'),
+                            content: const Text('Apakah Anda yakin ingin keluar?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text('Batal'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text('Ya, Keluar'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        // 2. Lanjutkan hanya jika user menekan "Ya"
+                        if (shouldLogout != true) {
+                          return;
+                        }
+
+                        // 3. Hapus data sesi
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.clear();
-                        if (!mounted) return;
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => LoginPage()),
-                        );
+
+                        if (!context.mounted) return;
+
+                        // 4. Gunakan GoRouter untuk navigasi dan reset stack
+                        context.go('/login');
                       },
                     ),
                   ],

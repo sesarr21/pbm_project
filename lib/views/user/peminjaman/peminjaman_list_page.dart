@@ -5,7 +5,7 @@ import '../../../models/peminjaman.dart';
 import 'detail_peminjaman_page.dart';
 
 class PeminjamanListPage extends StatefulWidget {
-  const PeminjamanListPage({super.key});
+  const PeminjamanListPage({super.key, required int initialIndex});
 
   @override
   State<PeminjamanListPage> createState() => _PeminjamanListPageState();

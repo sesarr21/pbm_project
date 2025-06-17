@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/services/api_service.dart';
-import '../admin/admin_dashboard.dart';
-import '../user/user_dashboard.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -39,15 +39,9 @@ class _LoginPageState extends State<LoginPage> {
       await prefs.setString('email', result['email'] ?? '');
 
       if (result['role'] == 'Admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminDashboard()),
-        );
+        context.go('/admin-dashboard'); 
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const UserDashboard()),
-        );
+        context.go('/home'); 
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -158,7 +152,9 @@ class _LoginPageState extends State<LoginPage> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.push('/forgot-password');
+                  },
                   child: const Text(
                     'Lupa Password?',
                     style: TextStyle(fontSize: 20, color: Color(0xFF2F80ED)),
@@ -183,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           child: const Text(
                             'Login',
-                            style: TextStyle(fontSize: 19, color: Colors.white),
+                            style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                         ),
               ),

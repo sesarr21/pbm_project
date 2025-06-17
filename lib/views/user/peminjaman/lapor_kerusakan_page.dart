@@ -18,14 +18,53 @@ class _LaporKerusakanPageState extends State<LaporKerusakanPage> {
   File? _imageFile;
   bool _isLoading = false;
 
-  Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
+  Future<void> _showImageSourceDialog() async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Ambil dari Kamera'),
+              onTap: () {
+                Navigator.of(context).pop(); // Tutup bottom sheet
+                _getImage(ImageSource.camera); // Ambil dari kamera
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Ambil Galeri'),
+              onTap: () {
+                Navigator.of(context).pop(); // Tutup bottom sheet
+                _getImage(ImageSource.gallery); // Ambil dari galeri
+              },
+            ),
+          ],
+        ),
+      ),
     );
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+  }
+
+  Future<void> _getImage(ImageSource source) async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 800, // (Opsional) Mengurangi ukuran file gambar
+        imageQuality: 85, // (Opsional) Mengurangi kualitas gambar
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      // Tangani error jika user tidak memberikan izin, dll.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengambil gambar: $e')),
+      );
     }
   }
 
@@ -86,7 +125,7 @@ class _LaporKerusakanPageState extends State<LaporKerusakanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lapor Kerusakan')),
+      appBar: AppBar(title: const Text('Lapor Kerusakan', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -108,9 +147,7 @@ class _LaporKerusakanPageState extends State<LaporKerusakanPage> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   SizedBox(height: 4),
-                  Text(
-                    '2 Barang Mengalami Kerusakan',
-                  ), // Ganti dengan data dinamis jika perlu
+                  
                 ],
               ),
             ),
@@ -122,7 +159,7 @@ class _LaporKerusakanPageState extends State<LaporKerusakanPage> {
             ),
             const SizedBox(height: 12),
             GestureDetector(
-              onTap: _pickImage,
+              onTap: _showImageSourceDialog,
               child: Container(
                 height: 200,
                 width: double.infinity,

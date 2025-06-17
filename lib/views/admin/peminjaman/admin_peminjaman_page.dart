@@ -29,7 +29,7 @@ class _AdminPeminjamanListPageState extends State<AdminPeminjamanListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Peminjaman')),
+      appBar: AppBar(title: const Text('Daftar Peminjaman', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),)),
       body: FutureBuilder<List<Peminjaman>>(
         future: _peminjamanFuture,
         builder: (context, snapshot) {

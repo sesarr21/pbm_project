@@ -230,6 +230,20 @@ class ApiService {
     }
   }
 
+  Future<int> getTotalUsersCount() async {
+    try {
+
+      final response = await _dio.get('$baseUrl/Auth/users/count');
+      
+      return response.data['totalUsers'];
+
+    } on DioException catch (e) {
+
+      throw Exception('Gagal memuat jumlah total pengguna: ${e.message}');
+    } catch (e) {
+      throw Exception('Terjadi kesalahan: $e');
+    }
+  }
 
   Future<List<Peminjaman>> getSemuaPeminjaman() async {
     try {
@@ -281,6 +295,17 @@ class ApiService {
       return [];
     }
   }
+
+  Future<bool> hapusNotifikasi(int notifikasiId) async {
+  try {
+    // API biasanya menggunakan method DELETE untuk menghapus
+    final response = await _dio.delete('$baseUrl/Notifikasi/$notifikasiId');
+    return response.statusCode == 200 || response.statusCode == 204;
+  } on DioException catch (e) {
+    print('Error hapusNotifikasi: ${e.response?.data}');
+    return false;
+  }
+}
 
   // Metode untuk MENGIRIM laporan kerusakan (dari User)
   Future<bool> submitLaporanKerusakan({
@@ -341,6 +366,71 @@ class ApiService {
     } on DioException catch (e) {
       print('Error updateStatusLaporan: ${e.response?.data}');
       return false;
+    }
+  }
+
+  Future<bool> tambahKategori(String nama) async {
+    try {
+      final response = await _dio.post(
+        '$baseUrl/Category',
+        data: {'name': nama},
+      );
+      return response.statusCode == 201 || response.statusCode == 200;
+    } on DioException catch (e) {
+      print('Error tambahKategori: ${e.response?.data}');
+      return false;
+    }
+  }
+
+  Future<bool> editKategori(int id, String namaBaru) async {
+    try {
+      final response = await _dio.put(
+        '$baseUrl/Category/$id',
+        data: {'id': id, 'name': namaBaru},
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } on DioException catch (e) {
+      print('Error editKategori: ${e.response?.data}');
+      return false;
+    }
+  }
+
+  Future<bool> hapusKategori(int id) async {
+    try {
+      final response = await _dio.delete('$baseUrl/Category/$id');
+      return response.statusCode == 200 || response.statusCode == 204;
+    } on DioException catch (e) {
+      print('Error hapusKategori: ${e.response?.data}');
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>> createUserByAdmin({
+    required String username,
+    required String email,
+    required String password,
+    required String fullName,
+    required String role,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '$baseUrl/Auth/admin/create-user', 
+        data: {
+          'username': username,
+          'email': email,
+          'password': password,
+          'fullName': fullName,
+          'role': role,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      if (e.response != null && e.response!.data != null) {
+        throw Exception(e.response!.data['message'] ?? 'Gagal membuat user.');
+      }
+      throw Exception('Gagal terhubung ke server: ${e.message}');
+    } catch (e) {
+      throw Exception('Terjadi kesalahan yang tidak diketahui: $e');
     }
   }
 

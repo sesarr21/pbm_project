@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/services/api_service.dart';
 import 'barang/tambah_page.dart';
 import 'barang/detailbarang_page.dart';
+import 'tambah_user/tambah_user_page.dart';
 
 class AdminHomePage extends StatefulWidget {
   const AdminHomePage({super.key});
@@ -12,7 +13,6 @@ class AdminHomePage extends StatefulWidget {
 }
 
 class _AdminHomePageState extends State<AdminHomePage> {
-
   List<dynamic> daftarBarang = [];
   bool isLoading = false;
   final ApiService _apiService = ApiService();
@@ -24,7 +24,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   bool _isLoadingStats = true;
   bool _isLoadingList = true;
-
 
   @override
   void initState() {
@@ -45,7 +44,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         _apiService.fetchBarang(),
         _apiService.getSemuaPeminjaman(),
         _apiService.getSemuaLaporanKerusakan(),
-
+        _apiService.getTotalUsersCount(),
       ]);
 
       // Setelah semua selesai, update state dengan hasilnya
@@ -56,7 +55,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           _totalBarang = daftarBarang.length;
           _totalPeminjaman = (results[1] as List).length;
           _totalLaporan = (results[2] as List).length;
-          // _totalUser = (results[3] as List).length;
+          _totalUser = results[3] as int;
 
           // Matikan semua loading
           _isLoadingStats = false;
@@ -70,24 +69,26 @@ class _AdminHomePageState extends State<AdminHomePage> {
           _isLoadingStats = false;
           _isLoadingList = false;
         });
-         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Gagal memuat data dashboard.'), backgroundColor: Colors.red),
-         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal memuat data dashboard.'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
 
-
   Future<void> _fetchBarangOnly() async {
-     setState(() => _isLoadingList = true);
-     final data = await _apiService.fetchBarang();
-     if(mounted) {
-       setState(() {
-         daftarBarang = data ?? [];
-         _totalBarang = daftarBarang.length; // Update juga total barang
-         _isLoadingList = false;
-       });
-     }
+    setState(() => _isLoadingList = true);
+    final data = await _apiService.fetchBarang();
+    if (mounted) {
+      setState(() {
+        daftarBarang = data ?? [];
+        _totalBarang = daftarBarang.length; // Update juga total barang
+        _isLoadingList = false;
+      });
+    }
   }
 
   Widget _buildBarangCard(dynamic barang) {
@@ -159,7 +160,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
             MaterialPageRoute(builder: (context) => const AddBarangPage()),
           ).then((isSuccess) {
             if (isSuccess == true) {
-              _fetchDashboardData(); 
+              _fetchDashboardData();
             } // Refresh data setelah menambahkan
           });
         },
@@ -191,8 +192,15 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.notifications_none),
-                    onPressed: () {},
+                    icon: const Icon(Icons.person_add_outlined),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddUserScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -228,7 +236,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
               const SizedBox(height: 24),
 
               // GridView untuk Statistik
-                _isLoadingStats
+              _isLoadingStats
                   ? const Center(child: CircularProgressIndicator())
                   : GridView.count(
                     crossAxisCount: 2,
@@ -255,7 +263,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       ),
                       // Mengganti "Total Pesan" menjadi "Total User"
                       _buildStatCard(
-                        'assets/images/total_pesan.png', // Ganti ikon jika perlu
+                        'assets/images/total_user.png', // Ganti ikon jika perlu
                         _totalUser.toString(),
                         'Total User',
                       ),
@@ -272,18 +280,18 @@ class _AdminHomePageState extends State<AdminHomePage> {
               _isLoadingList
                   ? const Center(child: CircularProgressIndicator())
                   : daftarBarang.isEmpty
-                    ? const Text(
-                        'Daftar barang kosong.',
-                        style: TextStyle(color: Colors.grey),
-                      )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: daftarBarang.length,
-                        itemBuilder: (context, index) {
-                          return _buildBarangCard(daftarBarang[index]);
-                        },
-                      ),
+                  ? const Text(
+                    'Daftar barang kosong.',
+                    style: TextStyle(color: Colors.grey),
+                  )
+                  : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: daftarBarang.length,
+                    itemBuilder: (context, index) {
+                      return _buildBarangCard(daftarBarang[index]);
+                    },
+                  ),
             ],
           ),
         ),

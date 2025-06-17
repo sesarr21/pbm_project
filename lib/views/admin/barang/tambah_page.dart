@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/api_service.dart';
 import '../admin_dashboard.dart';
 import '../../../models/kategori.dart';
+import 'kategoribarang_page.dart';
 
 class AddBarangPage extends StatefulWidget {
   const AddBarangPage({super.key});
@@ -228,6 +229,21 @@ class _AddBarangPageState extends State<AddBarangPage> {
               ),
               const SizedBox(height: 24),
 
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AdminKategoriPage()),
+                    );
+                  },
+                  child: const Text(
+                    'Tambah Kategori',
+                    style: TextStyle(fontSize: 16, color: Color(0xFF2F80ED)),
+                  ),
+                ),
+              ),
               // Kuantitas
               const Text(
                 'Kuantitas',

@@ -26,28 +26,28 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
     });
   }
 
-  // void _handleHapusNotifikasi(int id) async {
-  //   final bool success = await _apiService.hapusNotifikasi(id);
-  //   if (success && mounted) {
-  //     // Jika berhasil, hapus item dari list lokal dan refresh UI
-  //     setState(() {
-  //       _notifikasiList.removeWhere((notif) => notif.id == id);
-  //     });
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('Notifikasi dihapus.')),
-  //     );
-  //   } else if (mounted) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('Gagal menghapus notifikasi.')),
-  //     );
-  //   }
-  // }
+  void _handleHapusNotifikasi(int id) async {
+    final bool success = await _apiService.hapusNotifikasi(id);
+    if (success && mounted) {
+      // Jika berhasil, hapus item dari list lokal dan refresh UI
+      setState(() {
+        _notifikasiList.removeWhere((notif) => notif.id == id);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notifikasi dihapus.')),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal menghapus notifikasi.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifikasi'),
+        title: const Text('Notifikasi', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
       ),
       body: FutureBuilder<List<Notifikasi>>(
         future: _notifikasiFuture,
@@ -100,7 +100,10 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
             style: const TextStyle(color: Color(0xFF1565C0)),
           ),
         ),
-        
+        trailing: IconButton(
+          icon: const Icon(Icons.close, color: Color(0xFF1565C0)),
+          onPressed: () => _handleHapusNotifikasi(notifikasi.id),
+        ),
       ),
     );
   }

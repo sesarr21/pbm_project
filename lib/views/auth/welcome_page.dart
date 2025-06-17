@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
 
+
+
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
@@ -78,7 +80,7 @@ class WelcomePage extends StatelessWidget {
                       );
                     },
                     child: const Text(
-                      'Login',
+                      'Mulai',
                       style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),

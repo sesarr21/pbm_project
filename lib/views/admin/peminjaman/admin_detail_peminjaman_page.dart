@@ -190,7 +190,7 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
   Widget build(BuildContext context) {
     // UI halaman detail ini mirip dengan halaman detail user
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Peminjaman')),
+      appBar: AppBar(title: const Text('Detail Peminjaman', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),)),
       body: SingleChildScrollView(
          padding: const EdgeInsets.all(24),
         child: Card(
@@ -229,8 +229,10 @@ class _AdminDetailPeminjamanPageState extends State<AdminDetailPeminjamanPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showUpdateStatusDialog(context),
-        label: const Text('Edit Status'),
-        icon: const Icon(Icons.edit),
+        label: const Text('Edit Status', style: TextStyle(color: Colors.white)),
+        icon: const Icon(Icons.edit, color: Colors.white,),
+        backgroundColor: const Color(0xFF2F80ED),
+        
       ),
     );
   }

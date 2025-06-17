@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/services/api_service.dart';
-import 'peminjaman_list_page.dart';
 import '../../../models/peminjaman_dto.dart';
 
 class DaftarPinjamPage extends StatefulWidget {
@@ -209,7 +209,7 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
     final borrowRequestDto = CreateBorrowRequestDto(
       borrowDate: DateTime.now().toUtc(), // Gunakan waktu saat ini
       // Beri nilai default jika lokasi tidak aktif
-      location: lokasiAktif ? "Lokasi Pengguna" : "Tidak Diketahui",
+      location: lokasiAktif ? "Sekolah" : "Tidak Diketahui",
       latitude: lokasiAktif ? currentPosition!.latitude : 0.0,
       longitude: lokasiAktif ? currentPosition!.longitude : 0.0,
       items: selectedItemsDto,
@@ -229,10 +229,8 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
         ),
       );
       // Pindah ke halaman daftar peminjaman setelah berhasil
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const MainPage(initialIndex: 1)),
-        (Route<dynamic> route) => false,
-      );
+      context.go('/peminjaman-list', extra: 1);
+
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -452,13 +450,13 @@ class _DaftarPinjamPageState extends State<DaftarPinjamPage> {
 }
 
 // Dummy MainPage untuk navigasi, akan kita buat di langkah 5
-class MainPage extends StatelessWidget {
-  final int initialIndex;
-  const MainPage({super.key, this.initialIndex = 0});
+// class MainPage extends StatelessWidget {
+//   final int initialIndex;
+//   const MainPage({super.key, this.initialIndex = 0});
 
-  @override
-  Widget build(BuildContext context) {
-    // Implementasi lengkap ada di langkah 5
-    return PeminjamanListPage(); 
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     // Implementasi lengkap ada di langkah 5
+//     return PeminjamanListPage(); 
+//   }
+// }
